@@ -1,0 +1,24 @@
+{
+  "name": "region-investigation-admin",
+  "version": "1.0.0",
+  "description": "FIXME",
+  "main": "gulpfile.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.9.0",
+    "del": "^2.2.0",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2",
+    "gulp-debug": "^2.1.2",
+    "gulp-rename": "^1.2.2",
+    "gulp-rollup": "^1.9.0",
+    "gulp-sourcemaps": "^1.6.0"
+  }
+}
