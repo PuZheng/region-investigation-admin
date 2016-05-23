@@ -10,8 +10,13 @@
                  [lib-noir "0.9.9"]
                  [selmer "1.0.4"]
                  [ring/ring-json "0.4.0"]
+                 [org.clojure/java.jdbc "0.2.3"]
+                 [jarohen/nomad "0.7.2"]
+                 [org.xerial/sqlite-jdbc "3.8.11.2"]
+                 [clj-time "0.11.0"]
                  ]
-  :plugins [[lein-ring "0.9.7"]]
+  :plugins [[lein-ring "0.9.7"]
+            [lein-exec "0.3.6"]]
   :ring {:handler region-investigation-admin.handler/reloadable-app}
   :mirrors {"central" {:name "central"
                        :url "http://jcenter.bintray.com/"}}

@@ -9,13 +9,20 @@
             [ring.util.response :refer [response]]
             [clojure.java.io :as io]
             [clojure.pprint :refer [pprint]]
+            [clojure.java.jdbc :as jdbc]
+            [nomad :refer [defconfig]]
+            [clj-time.format :as f]
+            [clj-time.core :as t]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
+
+(def db-spec {:classname   "org.sqlite.JDBC"
+         :subprotocol "sqlite"
+         :subname     "db"
+         })
 
 (set-resource-path! (clojure.java.io/resource "templates"))
 
-(io/make-parents "assets/apks/foo.apk")
-(io/make-parents "assets/poi-types/foo.zip")
-(io/make-parents "assets/regions/foo.zip")
+(defconfig my-config (io/resource "config.edn"))
 
 
 (defn upload-file
@@ -25,9 +32,19 @@
 (defroutes app-routes
   (GET "/" [] (render-file "application.html" {}))
   (wrap-multipart-params (POST "/application/object" {params :params}
-                               (pprint params)
-                               (upload-file (params :file) 
-                                            (io/file "assets" "apks" (str (params :version) ".apk")))
+                               (let [version (params :version)]
+                                 (upload-file (params :file) 
+                                              (io/file ((my-config) :upload-dir) "apks" 
+                                                       (str version ".apk")))
+                                 (jdbc/with-connection db-spec 
+                                   (jdbc/insert-record 
+                                     :version {
+                                               :version version 
+                                               :path (str "apks/" version ".apk")
+                                               :brief (params :brief)
+                                               :created_at (f/unparse (f/formatter "yyyy-MM-dd HH:mm:ss") (t/now))
+                                               }) )
+                                 )
                                (response {}))) 
   (route/resources "/static")
   (route/not-found "Not Found"))
