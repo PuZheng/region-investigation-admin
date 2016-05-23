@@ -11,7 +11,7 @@ var resourceDir = 'resources/public/';
 
 gulp.task('compile', function () {
     console.log("COMPILE SCRIPTS");
-    return gulp.src([resourceDir + 'js/main.js'])
+    return gulp.src([resourceDir + 'js/application.js'])
         .pipe(sourcemaps.init())
         .pipe(rollup({
             // any option supported by Rollup can be set here, including sourceMap 
@@ -20,7 +20,7 @@ gulp.task('compile', function () {
         .pipe(babel({
             presets: ['es2015']
         }))
-        .pipe(rename('bundle.js'))
+        .pipe(rename('application.bundle.js'))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(resourceDir + 'js/'));
 });
@@ -31,6 +31,7 @@ gulp.task('clean', function () {
 });
 
 gulp.task('watch', function () {
-    livereload.listen();
     gulp.watch([resourceDir + '/js/*.js'], ['compile']);
 });
+
+gulp.task('default', ['compile', 'watch']);
