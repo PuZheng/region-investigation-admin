@@ -37,3 +37,4 @@ pom.xml.asc
 
 node_modules/
 *.bundle.js*
+assets/

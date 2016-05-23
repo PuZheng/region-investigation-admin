@@ -9,6 +9,7 @@
                  [ring/ring-json "0.4.0"]
                  [lib-noir "0.9.9"]
                  [selmer "1.0.4"]
+                 [ring/ring-json "0.4.0"]
                  ]
   :plugins [[lein-ring "0.9.7"]]
   :ring {:handler region-investigation-admin.handler/reloadable-app}
