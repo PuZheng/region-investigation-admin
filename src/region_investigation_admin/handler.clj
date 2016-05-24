@@ -32,20 +32,25 @@
 (defroutes app-routes
   (GET "/" [] (render-file "application.html" {}))
   (wrap-multipart-params (POST "/application/object" {params :params}
-                               (let [version (params :version)]
-                                 (upload-file (params :file) 
-                                              (io/file ((my-config) :upload-dir) "apks" 
-                                                       (str version ".apk")))
-                                 (jdbc/with-connection db-spec 
-                                   (jdbc/insert-record 
-                                     :version {
-                                               :version version 
-                                               :path (str "apks/" version ".apk")
-                                               :brief (params :brief)
-                                               :created_at (f/unparse (f/formatter "yyyy-MM-dd HH:mm:ss") (t/now))
-                                               }) )
-                                 )
-                               (response {}))) 
+                               (response 
+                                 (let [version (params :version)]
+                                   (upload-file (params :file) 
+                                                (io/file ((my-config) :upload-dir) "apks" 
+                                                         (str version ".apk")))
+                                   (jdbc/with-connection db-spec 
+                                     (try (jdbc/insert-record 
+                                            :version {
+                                                      :version version 
+                                                      :path (str "apks/" version ".apk")
+                                                      :brief (params :brief)
+                                                      :created_at (f/unparse (f/formatter "yyyy-MM-dd HH:mm:ss") (t/now))
+                                                      }) 
+                                          {}
+                                          (catch java.sql.SQLException e { 
+                                                                          :version "已经存在该版本"
+                                                                          }))
+                                     ))
+                               ))) 
   (route/resources "/static")
   (route/not-found "Not Found"))
 
