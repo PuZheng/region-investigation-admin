@@ -16,7 +16,7 @@
                  [clj-time "0.11.0"]
                  ]
   :plugins [[lein-ring "0.9.7"]
-            [lein-exec "0.3.6"]]
+            [lein-iclojure "1.2"]]
   :ring {:handler region-investigation-admin.handler/reloadable-app}
   :mirrors {"central" {:name "central"
                        :url "http://jcenter.bintray.com/"}}
