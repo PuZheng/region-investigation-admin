@@ -30,7 +30,11 @@
   [from to]
   (io/copy (from :tempfile) to))
 
-(def apkDir (str ((my-config) :upload-dir) "/apks"))
+
+; 保证uploadDir是以/结尾
+(def uploadDir (let [v ((my-config) :upload-dir)] (if (.endsWith v "/") v (str v "/"))))
+(def apkDir (str uploadDir "apks"))
+(def poiTypeDir (str uploadDir "poi-types"))
 
 (defroutes app-routes
   (GET "/" [] (render-file "application.html" {}))
@@ -51,6 +55,22 @@
                      :path (str "apks/" (.getName f))
                      }) (last (sort-by (fn [f] (.lastModified f)) (.listFiles (io/file apkDir))) ) ) )
                                   ))
+  (GET "/app/latest-poi-types" {params :query-params}
+       (response (let [orgCode (params "org_code")
+                       sdf (new java.text.SimpleDateFormat "yyyy-MM-dd HH:mm:ss")]
+                   (pprint orgCode)
+                   (map (fn [dir] 
+                          (let [latest-version-zip 
+                                (last (sort-by (fn [f] (.lastModified f)) (.listFiles dir)))]
+                            {
+                             :name (.getName dir)
+                             :createdAt (.format sdf (.lastModified latest-version-zip))
+                             :version (.replace (.getName latest-version-zip) ".zip" "")
+                             :path (-> latest-version-zip 
+                                       (.getPath)
+                                       (.replace uploadDir ""))
+                             })) 
+                        (.listFiles (io/file (str poiTypeDir "/" orgCode)))))))
   (wrap-multipart-params (POST "/application/object" {params :params}
                                (response 
                                  (let [version (params :version)]
