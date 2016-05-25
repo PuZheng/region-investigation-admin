@@ -9,16 +9,12 @@
             [ring.util.response :refer [response]]
             [clojure.java.io :as io]
             [clojure.pprint :refer [pprint]]
-            [clojure.java.jdbc :as jdbc]
             [nomad :refer [defconfig]]
             [clj-time.format :as f]
             [clj-time.core :as t]
+            [me.raynes.fs :as fs]
+            [ring.middleware.logger :as logger]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
-
-(def db-spec {:classname   "org.sqlite.JDBC"
-         :subprotocol "sqlite"
-         :subname     "db"
-         })
 
 
 (set-resource-path! (clojure.java.io/resource "templates"))
@@ -31,10 +27,12 @@
   (io/copy (from :tempfile) to))
 
 
-; 保证uploadDir是以/结尾
-(def uploadDir (let [v ((my-config) :upload-dir)] (if (.endsWith v "/") v (str v "/"))))
-(def apkDir (str uploadDir "apks"))
-(def poiTypeDir (str uploadDir "poi-types"))
+(def uploadDir (io/file (let [v ((my-config) :upload-dir)] (if (nil? v) "assets" v)) ))
+(def apkDir (io/file uploadDir "apks/"))
+(def poiTypeDir (io/file uploadDir "poi-types/"))
+
+(io/make-parents (io/file apkDir "foo"))
+(io/make-parents (io/file poiTypeDir "foo"))
 
 (defroutes app-routes
   (GET "/" [] (render-file "application.html" {}))
@@ -44,7 +42,7 @@
                                             :createdAt (.format sdf (.lastModified f))
                                             :version (.replace (.getName f) ".apk" "")
                                             })
-                                   (.listFiles (io/file apkDir))) )
+                                   (.listFiles apkDir)) )
                             ))
   (GET "/app/latest-version" [] 
        (response
@@ -53,51 +51,40 @@
                      :createdAt (.format sdf (.lastModified f))
                      :version (.replace (.getName f) ".apk" "")
                      :path (str "apks/" (.getName f))
-                     }) (last (sort-by (fn [f] (.lastModified f)) (.listFiles (io/file apkDir))) ) ) )
+                     }) (last (sort-by (fn [f] (.lastModified f)) (.listFiles apkDir)) ) ) )
                                   ))
-  (GET "/app/latest-poi-types" {params :query-params}
+  (GET "/poi-type/latest-versions" {params :query-params}
        (response (let [orgCode (params "org_code")
                        sdf (new java.text.SimpleDateFormat "yyyy-MM-dd HH:mm:ss")]
-                   (pprint orgCode)
-                   (map (fn [dir] 
-                          (let [latest-version-zip 
-                                (last (sort-by (fn [f] (.lastModified f)) (.listFiles dir)))]
-                            {
-                             :name (.getName dir)
-                             :createdAt (.format sdf (.lastModified latest-version-zip))
-                             :version (.replace (.getName latest-version-zip) ".zip" "")
-                             :path (-> latest-version-zip 
-                                       (.getPath)
-                                       (.replace uploadDir ""))
-                             })) 
-                        (.listFiles (io/file (str poiTypeDir "/" orgCode)))))))
+                   {:data (filter (fn [x] (not (nil? x)))
+                                  (map (fn [dir] 
+                                  (let [latest-version-zip 
+                                        (last (sort-by (fn [f] (.lastModified f)) 
+                                                       (filter (fn [f] (re-matches #"(?i).*\.zip$" (.getName f))) 
+                                                               (fs/list-dir dir))))]
+                                    (if (nil? latest-version-zip) nil {
+                                       :name (.getName dir)
+                                       :createdAt (.format sdf (.lastModified latest-version-zip))
+                                       :version (clojure.string/replace (.getName latest-version-zip) #"(?i)\.zip$" "")
+                                       :path (-> latest-version-zip 
+                                                 (.getPath)
+                                                 (.replace (.getAbsolutePath uploadDir) ""))
+                                       } ))) 
+                                (fs/list-dir (io/file poiTypeDir orgCode))))}
+                   )))
   (wrap-multipart-params (POST "/application/object" {params :params}
                                (response 
                                  (let [version (params :version)]
                                    (upload-file (params :file) 
                                                 (io/file ((my-config) :upload-dir) "apks" 
                                                          (str version ".apk")))
-                                   {}
-                                   ; (jdbc/with-connection db-spec 
-                                   ;   (try (jdbc/insert-record 
-                                   ;          :version {
-                                   ;                    :version version 
-                                   ;                    :path (str "apks/" version ".apk")
-                                   ;                    :brief (params :brief)
-                                   ;                    :created_at (f/unparse (f/formatter "yyyy-MM-dd HH:mm:ss") (t/now))
-                                   ;                    }) 
-                                   ;        {}
-                                   ;        (catch java.sql.SQLException e (pprint e) { 
-                                   ;                                        :version "已经存在该版本"
-                                   ;                                        }))
-                                   ;   ))
-
                                )))) 
   (route/resources "/static")
   (route/not-found "Not Found"))
 
 (def app
   (-> app-routes 
+      logger/wrap-with-logger
       wrap-json-response 
       (wrap-defaults (assoc-in site-defaults [:security :anti-forgery] false)))
   )
