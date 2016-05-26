@@ -20,20 +20,22 @@
 
 (set-resource-path! (clojure.java.io/resource "templates"))
 (defconfig my-config (io/resource "config.edn"))
-(io/make-parents (str ((my-config) :upload-dir) "/apks/foo"))
 
 
-(defn upload-file
-  [from to]
-  (io/copy (from :tempfile) to))
 
 
 (def uploadDir (io/file (let [v ((my-config) :upload-dir)] (if (nil? v) "assets" v)) ))
 (def apkDir (io/file uploadDir "apks/"))
 (def poiTypeDir (io/file uploadDir "poi-types/"))
+(def regionDir (io/file uploadDir "regions/"))
 
 (io/make-parents (io/file apkDir "foo"))
 (io/make-parents (io/file poiTypeDir "foo"))
+(io/make-parents (io/file regionDir "foo"))
+
+(defn upload-file
+  [from to]
+  (io/copy (from :tempfile) to))
 
 (defroutes app-routes
   (GET "/" [] (render-file "application.html" {}))
@@ -84,6 +86,16 @@
                                    (upload-file (params :file) 
                                                 (io/file ((my-config) :upload-dir) "apks" 
                                                          (str version ".apk")))
+                               )))) 
+  (wrap-multipart-params (POST "/region" {params :params}
+                               (response/response 
+                                 (let [orgCode (params :orgCode)
+                                       username (params :username)
+                                       file (params :file)
+                                       dest (io/file regionDir orgCode username (file :filename))]
+                                   (io/make-parents dest)
+                                   (upload-file file dest) 
+                                   {}
                                )))) 
   (route/resources "/static")
   (route/not-found "Not Found"))
