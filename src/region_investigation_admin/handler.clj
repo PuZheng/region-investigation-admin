@@ -6,14 +6,15 @@
             [ring.middleware.reload :refer [wrap-reload]]
             [ring.middleware.multipart-params :refer [wrap-multipart-params]]
             [ring.middleware.json :refer [wrap-json-response]]
-            [ring.util.response :refer [response]]
             [clojure.java.io :as io]
             [clojure.pprint :refer [pprint]]
             [nomad :refer [defconfig]]
             [clj-time.format :as f]
             [clj-time.core :as t]
             [me.raynes.fs :as fs]
+            [me.raynes.fs.compression :as compression]
             [ring.middleware.logger :as logger]
+            [cheshire.core :refer [parse-string]]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]))
 
 
@@ -36,7 +37,7 @@
 
 (defroutes app-routes
   (GET "/" [] (render-file "application.html" {}))
-  (GET "/app/version/list" [] (response 
+  (GET "/app/version/list" [] (response/response 
                             (let [sdf (new java.text.SimpleDateFormat "yyyy-MM-dd HH:mm:ss")] 
                               (map (fn [f] {
                                             :createdAt (.format sdf (.lastModified f))
@@ -45,7 +46,7 @@
                                    (.listFiles apkDir)) )
                             ))
   (GET "/app/latest-version" [] 
-       (response
+       (response/response
          (let [sdf (new java.text.SimpleDateFormat "yyyy-MM-dd HH:mm:ss")] 
            ((fn [f] {
                      :createdAt (.format sdf (.lastModified f))
@@ -54,26 +55,28 @@
                      }) (last (sort-by (fn [f] (.lastModified f)) (.listFiles apkDir)) ) ) )
                                   ))
   (GET "/poi-type/latest-versions" {params :query-params}
-       (response (let [orgCode (params "org_code")
-                       sdf (new java.text.SimpleDateFormat "yyyy-MM-dd HH:mm:ss")]
-                   {:data (filter (fn [x] (not (nil? x)))
-                                  (map (fn [dir] 
-                                  (let [latest-version-zip 
-                                        (last (sort-by (fn [f] (.lastModified f)) 
-                                                       (filter (fn [f] (re-matches #"(?i).*\.zip$" (.getName f))) 
-                                                               (fs/list-dir dir))))]
-                                    (if (nil? latest-version-zip) nil {
-                                       :name (.getName dir)
-                                       :createdAt (.format sdf (.lastModified latest-version-zip))
-                                       :version (clojure.string/replace (.getName latest-version-zip) #"(?i)\.zip$" "")
-                                       :path (-> latest-version-zip 
-                                                 (.getPath)
-                                                 (.replace (.getAbsolutePath uploadDir) ""))
-                                       } ))) 
-                                (fs/list-dir (io/file poiTypeDir orgCode))))}
+       (response/response (let [orgCode (params "org_code")]
+                   {:data (map (fn [dir] {
+                                          :name (.getName dir)
+                                          :timestamp ((parse-string (slurp (io/file dir "config.json"))) 
+                                                      "timestamp")
+                                          })
+                               (filter fs/directory? (fs/list-dir (io/file poiTypeDir orgCode))))}
                    )))
+  (GET "/poi-type/:orgCode/:name_.zip" [orgCode name_]
+       (response/header 
+         (response/file-response 
+           (let [timestamp ((parse-string (slurp (io/file poiTypeDir orgCode name_ "config.json"))) 
+                            "timestamp")
+                 zipFile (io/file poiTypeDir orgCode (str name_ "-" timestamp ".zip"))]
+             (if (not (fs/exists? zipFile)) 
+               (compression/zip zipFile 
+                                (map (fn [f] [(.getName f) (slurp f)]) 
+                                     (filter fs/file? (fs/list-dir (io/file poiTypeDir orgCode name_))))))
+             (.getPath (io/file poiTypeDir orgCode (str name_ "-" timestamp ".zip")))))
+         "content-disposition" (str "attachment; filename=\"" name_ "\"")))
   (wrap-multipart-params (POST "/application/object" {params :params}
-                               (response 
+                               (response/response 
                                  (let [version (params :version)]
                                    (upload-file (params :file) 
                                                 (io/file ((my-config) :upload-dir) "apks" 

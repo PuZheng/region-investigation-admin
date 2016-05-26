@@ -14,6 +14,7 @@
                  [clj-time "0.11.0"]
                  [me.raynes/fs "1.4.6"]
                  [ring.middleware.logger "0.5.0"]
+                 [cheshire "5.6.1"]
                  ]
   :plugins [[lein-ring "0.9.7"]
             [lein-iclojure "1.2"]]
