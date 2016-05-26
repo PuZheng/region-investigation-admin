@@ -53,7 +53,6 @@
            ((fn [f] {
                      :createdAt (.format sdf (.lastModified f))
                      :version (.replace (.getName f) ".apk" "")
-                     :path (str "apks/" (.getName f))
                      }) (last (sort-by (fn [f] (.lastModified f)) (.listFiles apkDir)) ) ) )
                                   ))
   (GET "/app/:version.apk" [version]
