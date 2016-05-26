@@ -54,6 +54,9 @@
                      :path (str "apks/" (.getName f))
                      }) (last (sort-by (fn [f] (.lastModified f)) (.listFiles apkDir)) ) ) )
                                   ))
+  (GET "/app/:version.apk" [version]
+       (response/header (response/file-response (.getPath (io/file apkDir (str version ".apk")))) 
+                        "content-disposition" (str "attachment; filename=\"" version ".apk\"")))
   (GET "/poi-type/latest-versions" {params :query-params}
        (response/response (let [orgCode (params "org_code")]
                    {:data (map (fn [dir] {
