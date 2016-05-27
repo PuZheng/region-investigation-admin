@@ -22,8 +22,6 @@
 (defconfig my-config (io/resource "config.edn"))
 
 
-
-
 (def uploadDir (io/file (let [v ((my-config) :upload-dir)] (if (nil? v) "assets" v)) ))
 (def apkDir (io/file uploadDir "apks/"))
 (def poiTypeDir (io/file uploadDir "poi-types/"))
@@ -36,6 +34,13 @@
 (defn upload-file
   [from to]
   (io/copy (from :tempfile) to))
+
+(defn read-file [file]
+  (with-open [reader (io/input-stream file)]
+    (let [length (.length (io/file file))
+          buffer (byte-array length)]
+      (.read reader buffer 0 length)
+      buffer)))
 
 (defroutes app-routes
   (GET "/" [] (render-file "application.html" {}))
@@ -75,7 +80,8 @@
                  zipFile (io/file poiTypeDir orgCode (str name_ "-" timestamp ".zip"))]
              (if (not (fs/exists? zipFile)) 
                (compression/zip zipFile 
-                                (map (fn [f] [(.getName f) (slurp f)]) 
+                                ; don't use slurp to read binary data
+                                (map (fn [f] [(.getName f) (read-file f)]) 
                                      (filter fs/file? (fs/list-dir (io/file poiTypeDir orgCode name_))))))
              (.getPath (io/file poiTypeDir orgCode (str name_ "-" timestamp ".zip")))))
          "content-disposition" (str "attachment; filename=\"" name_ "\"")))
