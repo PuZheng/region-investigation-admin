@@ -38,7 +38,7 @@
   (io/copy (from :tempfile) to))
 
 (defroutes app-routes
-  (GET "/" [] (render-file "application.html" {}))
+  (GET "/" []  (render-file "application.html" {}))
   (GET "/app/version/list" [] (response/response 
                             (let [sdf (new java.text.SimpleDateFormat "yyyy-MM-dd HH:mm:ss")] 
                               (map (fn [f] {
@@ -80,12 +80,13 @@
              (.getPath (io/file poiTypeDir orgCode (str name_ "-" timestamp ".zip")))))
          "content-disposition" (str "attachment; filename=\"" name_ "\"")))
   (wrap-multipart-params (POST "/application/object" {params :params}
-                               (response/response 
-                                 (let [version (params :version)]
-                                   (upload-file (params :file) 
-                                                (io/file ((my-config) :upload-dir) "apks" 
-                                                         (str version ".apk")))
-                               )))) 
+                               (response/header (response/response 
+                                  (let [version (params :version)]
+                                    (upload-file (params :file) 
+                                                 (io/file ((my-config) :upload-dir) "apks" 
+                                                          (str version ".apk")))
+                                    {}
+                                    )) "Access-Control-Allow-Origin" "*"))) 
   (wrap-multipart-params (POST "/region" {params :params}
                                (response/response 
                                  (let [orgCode (params :orgCode)
@@ -96,12 +97,23 @@
                                    (upload-file file dest) 
                                    {}
                                )))) 
-  (route/resources "/static")
   (route/not-found "Not Found"))
+
+(def cors-headers 
+  { "Access-Control-Allow-Origin" "*"
+    "Access-Control-Allow-Headers" "Content-Type"
+    "Access-Control-Allow-Methods" "GET,POST,OPTIONS" })
+
+(defn all-cors
+  "Allow requests from all origins"
+  [handler]
+  (fn [request]
+    (let [response (handler request)]
+      (update-in response [:headers]
+        merge cors-headers ))))
 
 (def app
   (-> app-routes 
-      logger/wrap-with-logger
       wrap-json-response 
       (wrap-defaults (assoc-in site-defaults [:security :anti-forgery] false)))
   )

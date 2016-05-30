@@ -12,8 +12,6 @@
     "jquery": "^2.2.3",
     "mithril": "^0.2.4",
     "nprogress": "^0.2.0",
-    "semantic-ui": "^2.1.8",
-    "skeleton-css": "^2.0.4",
     "toastr": "^2.1.2"
   }
 }

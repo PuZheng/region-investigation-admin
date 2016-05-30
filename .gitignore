@@ -39,3 +39,4 @@ node_modules/
 *.bundle.js*
 assets/
 db
+bower_components/
