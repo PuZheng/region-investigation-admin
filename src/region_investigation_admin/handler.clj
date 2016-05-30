@@ -46,11 +46,15 @@
   (GET "/" []  (render-file "application.html" {}))
   (GET "/app/version/list" [] (response/response 
                             (let [sdf (new java.text.SimpleDateFormat "yyyy-MM-dd HH:mm:ss")] 
-                              (map (fn [f] {
+                              (->> apkDir
+                                   .listFiles
+                                   (filter (fn [f] (.endsWith (.getName f) ".apk")))
+                                   (map (fn [f] {
                                             :createdAt (.format sdf (.lastModified f))
                                             :version (.replace (.getName f) ".apk" "")
                                             })
-                                   (.listFiles apkDir)) )
+                                   ))
+                              )
                             ))
   (GET "/app/latest-version" [] 
        (response/response
@@ -86,13 +90,22 @@
              (.getPath (io/file poiTypeDir orgCode (str name_ "-" timestamp ".zip")))))
          "content-disposition" (str "attachment; filename=\"" name_ "\"")))
   (wrap-multipart-params (POST "/application/object" {params :params}
-                               (response/header (response/response 
-                                  (let [version (params :version)]
-                                    (upload-file (params :file) 
-                                                 (io/file ((my-config) :upload-dir) "apks" 
-                                                          (str version ".apk")))
-                                    {}
-                                    )) "Access-Control-Allow-Origin" "*"))) 
+                               (let [version (params :version)
+                                     versionsExist (set (->> apkDir
+                                                          .listFiles
+                                                          (filter (fn [f] (.endsWith (.getName f) ".apk")))
+                                                          (map (fn [f] (.replace (.getName f) ".apk" "")))))]
+                                 (if (versionsExist version) 
+                                   (response/status (response/response {
+                                                                        :version "该版本已经存在"
+                                                                        }) 403)
+                                   
+                                   (response/response (do (upload-file (params :file) 
+                                                     (io/file ((my-config) :upload-dir) "apks" 
+                                                              (str version ".apk")))
+                                        {}))
+                                   ))
+                               )) 
   (wrap-multipart-params (POST "/region" {params :params}
                                (response/response 
                                  (let [orgCode (params :orgCode)
