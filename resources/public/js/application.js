@@ -31,15 +31,15 @@ var newVersionForm = {
                                 }));
                                 return false;
                             }
-                            ctrl.loading(true);
                             var data = new FormData();
                             data.append('file', ctrl.file());
                             data.append('version', ctrl.version());
-                            console.log(data);
                             var transport = m.prop();
+                            ctrl.loading(true);
+                            NProgress.start();
                             m.request({ 
                                 method: 'POST',
-                                url: '<%= backend %>/application/object',
+                                url: '/application/object',
                                 data: data,
                                 serialize: function(value) {return value;},
                                 config: transport,
@@ -49,12 +49,13 @@ var newVersionForm = {
                                 toastr.success('创建成功!');
                             }, ctrl.errors).then(() => {
                                 ctrl.loading(false);
+                                NProgress.done();
                             });
+                            
                             var xhr = transport();
                             xhr.onprogress = function (e) {
                                 if (e.lengthComputable) {
-                                    // alert(e.loaded / e.total);
-                                    console.log(e.loaded / e.total);
+                                    NProgress.set(e.loaded / e.total);
                                 }
                             };
                             return false;

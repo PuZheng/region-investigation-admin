@@ -6,8 +6,6 @@ var gulp = require('gulp')
     ,rename = require('gulp-rename')
     ,debug = require('gulp-debug')
     ,livereload = require('gulp-livereload')
-    ,template = require('gulp-template')
-    ,data = require('gulp-data')
     ,del = require('del');
 
 var resourceDir = 'resources/public/';
@@ -15,9 +13,6 @@ var resourceDir = 'resources/public/';
 gulp.task('compile', function () {
     console.log("COMPILE SCRIPTS");
     return gulp.src([resourceDir + 'js/application.js'])
-        .pipe(template({
-                // backend: "http://127.0.0.1:3000",
-            }))
         .pipe(sourcemaps.init())
         .pipe(babel({
             presets: ['es2015']
