@@ -1,0 +1,18 @@
+{
+  "name": "region-investigation-admin",
+  "description": "",
+  "main": "index.js",
+  "authors": [
+    "xiechao06 <xiechoa06@gmail.com>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/PuZheng/region-investigation-admin",
+  "moduleType": [],
+  "private": true,
+  "dependencies": {
+    "jquery": "^2.2.4",
+    "mithril": "^0.2.5",
+    "toastr": "^2.1.2",
+    "nprogress": "^0.2.0"
+  }
+}
