@@ -5,6 +5,7 @@ var gulp = require('gulp')
     ,path = require('path')
     ,rename = require('gulp-rename')
     ,debug = require('gulp-debug')
+    ,livereload = require('gulp-livereload')
     ,del = require('del');
 
 var resourceDir = 'resources/public/';
@@ -13,24 +14,24 @@ gulp.task('compile', function () {
     console.log("COMPILE SCRIPTS");
     return gulp.src([resourceDir + 'js/application.js'])
         .pipe(sourcemaps.init())
-        .pipe(rollup({
-            // any option supported by Rollup can be set here, including sourceMap 
-            sourceMap: true
-        }))
         .pipe(babel({
             presets: ['es2015']
         }))
         .pipe(rename('application.bundle.js'))
         .pipe(sourcemaps.write('.'))
-        .pipe(gulp.dest(resourceDir + 'js/'));
+        .pipe(gulp.dest(resourceDir + 'js/'))
+        .pipe(livereload());
 });
 
 
 gulp.task('clean', function () {
-  return del(resourceDir + 'js/bundle.js*');
+  del(resourceDir + 'js/application.bundle.js*').then(function (paths) {
+      console.log(paths.join(', ') + " deleted");
+  });
 });
 
 gulp.task('watch', function () {
+    livereload.listen();
     gulp.watch([resourceDir + '/js/*.js'], ['compile']);
 });
 
