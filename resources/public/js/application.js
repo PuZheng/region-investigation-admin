@@ -1,18 +1,16 @@
 
 var newVersionForm = {
     controller: function () {
-        this.errors = m.prop({
-            version: '',
-            file: '',
-        });
-        this.onchange = function (file) {
-            this.file(file);
-        };
         this.init = function () {
             this.file = m.prop();
             this.loading = m.prop();
             this.version = m.prop('');
+            this.errors = m.prop({
+                version: '',
+                file: '',
+            });
         }.bind(this);
+        this.init();
     },
     view: function (ctrl, args) {
         return (
@@ -49,6 +47,7 @@ var newVersionForm = {
                                     toastr.options.positionClass = "toast-bottom-center";
                                     toastr.options.timeOut = 1000;
                                     toastr.success('创建成功!');
+                                    ctrl.init();
                                 }, ctrl.errors).then(() => {
                                     ctrl.loading(false);
                                     NProgress.done();
@@ -78,7 +77,7 @@ var newVersionForm = {
                             m('.field', [
                                     m('div', [
                                         m.component(fileButton, {
-                                            onchange: ctrl.onchange.bind(ctrl),
+                                            file: ctrl.file,
                                             onCompleted: function (path_) {
 
                                     },
@@ -109,8 +108,10 @@ var fileButton = {
             }, [
                 m('input[type=file]', {
                     onchange: function (e) {
-                        args.onchange(e.currentTarget.files[0]);
+                        args.file(e.currentTarget.files[0]);
                     },
+                    value: "", // set value to "" to clear this field, otherwise onchange won't be callbacked when 
+                    // select the same file again
                     style: {
                         position: 'absolute',
                         top: 0,
@@ -120,43 +121,6 @@ var fileButton = {
                         opacity: '0',
                         display: 'block',
                     },
-                    config: function (element, isinitialized) {
-                        if (!isinitialized) {
-                            // element.addEventListener('change', function (e) {
-                            //     var data = new FormData();
-                            //     data.append("file", e.currentTarget.files[0]);
-                            //     var transport = m.prop();
-                            //     console.log('upload begin...');
-                            //     m.request({
-                            //         method: 'POST',
-                            //         url: '/upload',
-                            //         data: data,
-                            //         serialize: function(data) {
-                            //             return data;
-                            //         },
-                            //         config: transport,
-                            //     }).then(function () {
-                            //         console.log('uploaded');
-                            //     }, function () {
-                            //         toastr.options.positionClass = "toast-bottom-center";
-                            //         toastr.options.timeOut = 1000;
-                            //         toastr.error('上传失败');
-                            //     }).then(function () {
-                            //         element.value = "";
-                            //     });
-                            //     var xhr = transport();
-                            //     xhr.onprogress = function (e) {
-                            //         if (e.lengthComputable) {
-                            //             // alert(e.loaded / e.total);
-                            //             console.log(e.loaded / e.total);
-                            //         }
-                            //     };
-                            //     xhr.onload = function (e) {
-                            //         debugger;
-                            //     };
-                            // });
-                        }
-                    }
                 })
             ], '点击上传APK')
         );
