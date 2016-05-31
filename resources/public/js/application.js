@@ -39,7 +39,7 @@ var newVersionForm = {
                                 NProgress.start();
                                 m.request({ 
                                     method: 'POST',
-                                    url: '/application/object',
+                                    url: '/app/object',
                                     data: data,
                                     serialize: function(value) {return value;},
                                     config: transport,
