@@ -17,7 +17,8 @@
                  [cheshire "5.6.1"]
                  ]
   :plugins [[lein-ring "0.9.7"]
-            [lein-iclojure "1.2"]]
+            [lein-iclojure "1.2"]
+            [jonase/eastwood "0.2.3"]]
   :ring {:handler region-investigation-admin.handler/reloadable-app}
   :mirrors {"central" {:name "central"
                        :url "http://jcenter.bintray.com/"}}
