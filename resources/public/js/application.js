@@ -1,83 +1,84 @@
 
 var newVersionForm = {
     controller: function () {
-        this.file = m.prop();
-        this.loading = m.prop();
-        this.version = m.prop('');
-        this.errors = m.prop({
-            version: '',
-            file: '',
-        });
-        this.onchange = function (file) {
-            this.file(file);
-        };
+        this.init = function () {
+            this.file = m.prop();
+            this.loading = m.prop();
+            this.version = m.prop('');
+            this.errors = m.prop({
+                version: '',
+                file: '',
+            });
+        }.bind(this);
+        this.init();
     },
     view: function (ctrl, args) {
         return (
-            m('div', [
-                m('.ui.top.attached.info.message', "发布新版本"),
-                m('.ui.bottom.attached.segment', [
-                    m('form.ui.form', {
-                        onsubmit: function (e) {
-                            if (!ctrl.version()) {
-                                ctrl.errors(Object.assign(ctrl.errors(), {
-                                    version: '版本不能为空',
-                                }));
-                                return false;
-                            }
-                            if (!ctrl.file()) {
-                                ctrl.errors(Object.assign(ctrl.errors(), {
-                                    file: "请上传apk文件"
-                                }));
-                                return false;
-                            }
-                            var data = new FormData();
-                            data.append('file', ctrl.file());
-                            data.append('version', ctrl.version());
-                            var transport = m.prop();
-                            ctrl.loading(true);
-                            NProgress.start();
-                            m.request({ 
-                                method: 'POST',
-                                url: '/application/object',
-                                data: data,
-                                serialize: function(value) {return value;},
-                                config: transport,
-                            }).then((data) => {
-                                toastr.options.positionClass = "toast-bottom-center";
-                                toastr.options.timeOut = 1000;
-                                toastr.success('创建成功!');
-                            }, ctrl.errors).then(() => {
-                                ctrl.loading(false);
-                                NProgress.done();
-                            });
-                            
-                            var xhr = transport();
-                            xhr.onprogress = function (e) {
-                                if (e.lengthComputable) {
-                                    NProgress.set(e.loaded / e.total);
+                m('div', [
+                    m('.ui.top.attached.info.message', "发布新版本"),
+                    m('.ui.bottom.attached.segment', [
+                        m('form.ui.form', {
+                            onsubmit: function (e) {
+                                if (!ctrl.version()) {
+                                    ctrl.errors(Object.assign(ctrl.errors(), {
+                                        version: '版本不能为空',
+                                    }));
+                                    return false;
                                 }
-                            };
-                            return false;
-                        },
-                        class: ctrl.loading()? 'loading': ''
-                    }, 
-                    [
-                        m('.field', [
-                            m('label[for="input-version"]', "版本号(必须是x.y.z形式)"),
-                            m('input#input-version[type="text"][name="version"][placeHolder="请输入版本号"]', {
-                                oninput: m.withAttr('value', ctrl.version),
-                                value: ctrl.version(),
-                            }),
-                            m('.ui.pointing.red.basic.label', {
-                                class: (ctrl.errors() && ctrl.errors().version)? "": "invisible",
-                            }, (ctrl.errors() && ctrl.errors().version) || ""),
-                        ]),
-                        m('.field', [
-                            m('div', [
-                                m.component(fileButton, {
-                                    onchange: ctrl.onchange.bind(ctrl),
-                                    onCompleted: function (path_) {
+                                if (!ctrl.file()) {
+                                    ctrl.errors(Object.assign(ctrl.errors(), {
+                                        file: "请上传apk文件"
+                                    }));
+                                    return false;
+                                }
+                                var data = new FormData();
+                                data.append('file', ctrl.file());
+                                data.append('version', ctrl.version());
+                                var transport = m.prop();
+                                ctrl.loading(true);
+                                NProgress.start();
+                                m.request({ 
+                                    method: 'POST',
+                                    url: '/application/object',
+                                    data: data,
+                                    serialize: function(value) {return value;},
+                                    config: transport,
+                                }).then((data) => {
+                                    toastr.options.positionClass = "toast-bottom-center";
+                                    toastr.options.timeOut = 1000;
+                                    toastr.success('创建成功!');
+                                    ctrl.init();
+                                }, ctrl.errors).then(() => {
+                                    ctrl.loading(false);
+                                    NProgress.done();
+                                });
+
+                                var xhr = transport();
+                                xhr.onprogress = function (e) {
+                                    if (e.lengthComputable) {
+                                        NProgress.set(e.loaded / e.total);
+                                    }
+                                };
+                                return false;
+                            },
+                            class: ctrl.loading()? 'loading': ''
+                        }, 
+                        [
+                            m('.field', [
+                                    m('label[for="input-version"]', "版本号(必须是x.y.z形式)"),
+                                    m('input#input-version[type="text"][name="version"][placeHolder="请输入版本号"]', {
+                                        oninput: m.withAttr('value', ctrl.version),
+                                        value: ctrl.version(),
+                                    }),
+                                    m('.ui.pointing.red.basic.label', {
+                                        class: (ctrl.errors() && ctrl.errors().version)? "": "invisible",
+                                    }, (ctrl.errors() && ctrl.errors().version) || ""),
+                            ]),
+                            m('.field', [
+                                    m('div', [
+                                        m.component(fileButton, {
+                                            file: ctrl.file,
+                                            onCompleted: function (path_) {
 
                                     },
                                 }),
@@ -107,8 +108,10 @@ var fileButton = {
             }, [
                 m('input[type=file]', {
                     onchange: function (e) {
-                        args.onchange(e.currentTarget.files[0]);
+                        args.file(e.currentTarget.files[0]);
                     },
+                    value: "", // set value to "" to clear this field, otherwise onchange won't be callbacked when 
+                    // select the same file again
                     style: {
                         position: 'absolute',
                         top: 0,
@@ -118,43 +121,6 @@ var fileButton = {
                         opacity: '0',
                         display: 'block',
                     },
-                    config: function (element, isinitialized) {
-                        if (!isinitialized) {
-                            // element.addEventListener('change', function (e) {
-                            //     var data = new FormData();
-                            //     data.append("file", e.currentTarget.files[0]);
-                            //     var transport = m.prop();
-                            //     console.log('upload begin...');
-                            //     m.request({
-                            //         method: 'POST',
-                            //         url: '/upload',
-                            //         data: data,
-                            //         serialize: function(data) {
-                            //             return data;
-                            //         },
-                            //         config: transport,
-                            //     }).then(function () {
-                            //         console.log('uploaded');
-                            //     }, function () {
-                            //         toastr.options.positionClass = "toast-bottom-center";
-                            //         toastr.options.timeOut = 1000;
-                            //         toastr.error('上传失败');
-                            //     }).then(function () {
-                            //         element.value = "";
-                            //     });
-                            //     var xhr = transport();
-                            //     xhr.onprogress = function (e) {
-                            //         if (e.lengthComputable) {
-                            //             // alert(e.loaded / e.total);
-                            //             console.log(e.loaded / e.total);
-                            //         }
-                            //     };
-                            //     xhr.onload = function (e) {
-                            //         debugger;
-                            //     };
-                            // });
-                        }
-                    }
                 })
             ], '点击上传APK')
         );
