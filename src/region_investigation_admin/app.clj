@@ -3,7 +3,6 @@
     [ring.util.response :as response]
     [clojure.java.io :as io]
     [compojure.core :refer :all]
-    [cheshire.core :refer [parse-string]]
     [clojure.pprint :refer [pprint]]
     [ring.middleware.multipart-params :refer [wrap-multipart-params]]
     [region-investigation-admin.config :refer [upload-dir my-config]]
