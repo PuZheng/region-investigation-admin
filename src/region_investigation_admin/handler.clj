@@ -89,7 +89,7 @@
                                      (filter fs/file? (fs/list-dir (io/file poiTypeDir orgCode name_))))))
              (.getPath (io/file poiTypeDir orgCode (str name_ "-" timestamp ".zip")))))
          "content-disposition" (str "attachment; filename=\"" name_ "\"")))
-  (wrap-multipart-params (POST "/application/object" {params :params}
+  (wrap-multipart-params (POST "/app/object" {params :params}
                                (let [version (params :version)
                                      versionsExist (set (->> apkDir
                                                           .listFiles
