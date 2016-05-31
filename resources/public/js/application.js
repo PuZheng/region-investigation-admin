@@ -15,7 +15,7 @@ var newVersionForm = {
     view: function (ctrl, args) {
         return (
                 m('div', [
-                    m('.ui.top.attached.info.message', "发布新版本"),
+                    m('.ui.top.attached.red.message', "发布新版本"),
                     m('.ui.bottom.attached.segment', [
                         m('form.ui.form', {
                             onsubmit: function (e) {
@@ -128,11 +128,53 @@ var fileButton = {
 };
 
 var versionHistory = {
+    controller: function () {
+        this.versions = m.request({
+            method: 'GET',
+            url: '/app/version/list',
+            deserialize: function (data) {
+                return JSON.parse(data).data;
+            }            
+        });
+    },
     view: function (ctrl, args) {
+        console.log(ctrl.versions());
         return (
-            m('div', "version history")
+            m('div', [
+                m('.ui.top.attached.info.message', '历史版本'),
+                m('.ui.bottom.attached.segment', [
+                    m('.ui.divided.list', (ctrl.versions() || []).map(function (version) {
+                        return m('.item', [
+                            m('.content', [
+                                m('.header', {
+                                    style: {
+                                        display: 'inline-block',
+                                    }
+                                }, version.createdAt),
+                                m('.span', {
+                                    style: {
+                                        display: 'inline-block',
+                                        'padding-left': '1em',
+                                        'padding-right': '1em',
+                                    }
+                                }, version.version),
+                                m('a[href="/app/' + version.version + '.apk"]', [
+                                    m('i.ui.icon.download')
+                                ])
+                            ])
+                        ]);
+                    }))
+                ])
+            ])
         );
     },
 };
 
-m.mount(document.querySelector('.ui.container'), newVersionForm);
+m.mount(document.querySelector('.ui.container'), { 
+    view: function (ctrl, args) {
+        return [
+            m.component(newVersionForm),
+            m.component(versionHistory)
+        ];
+    },
+});

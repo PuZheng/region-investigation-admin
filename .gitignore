@@ -37,6 +37,6 @@ pom.xml.asc
 
 node_modules/
 *.bundle.js*
-assets/
+/assets/
 db
 bower_components/

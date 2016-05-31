@@ -45,16 +45,16 @@
 (defroutes app-routes
   (GET "/" []  (render-file "application.html" {}))
   (GET "/app/version/list" [] (response/response 
-                            (let [sdf (new java.text.SimpleDateFormat "yyyy-MM-dd HH:mm:ss")] 
-                              (->> apkDir
-                                   .listFiles
-                                   (filter (fn [f] (.endsWith (.getName f) ".apk")))
-                                   (map (fn [f] {
-                                            :createdAt (.format sdf (.lastModified f))
-                                            :version (.replace (.getName f) ".apk" "")
-                                            })
-                                   ))
-                              )
+                                { :data (let [sdf (new java.text.SimpleDateFormat "yyyy-MM-dd HH:mm:ss")] 
+                                          (->> apkDir
+                                               .listFiles
+                                               (filter (fn [f] (.endsWith (.getName f) ".apk")))
+                                               (map (fn [f] {
+                                                             :createdAt (.format sdf (.lastModified f))
+                                                             :version (.replace (.getName f) ".apk" "")
+                                                             })
+                                                    ))
+                                          ) }
                             ))
   (GET "/app/latest-version" [] 
        (response/response
