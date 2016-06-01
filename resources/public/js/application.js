@@ -170,11 +170,48 @@ var versionHistory = {
     },
 };
 
-m.mount(document.querySelector('.ui.container'), { 
+var navBar = {
     view: function (ctrl, args) {
-        return [
-            m.component(newVersionForm),
-            m.component(versionHistory)
-        ];
+        return (
+                m('.ui.top.fixed.inverted.menu', [['/app', '应用'], 
+                    ['/org', '组织'], ['/poi-type', '信息点类型'], 
+                    ['/region', '上传数据']].map(([link, label]) => 
+                        m('.item', [m(`a[href=${link}]`, label)])
+                        ))
+               );
+    }
+};
+
+m.route.mode = 'pathname';
+m.route(document.querySelector('.ui.container'), "/app", { 
+    '/app': {
+        view: function (ctrl, args) {
+            return [
+                m.component(navBar),
+                m.component(newVersionForm),
+                m.component(versionHistory)
+            ];
+        },
     },
+    '/org': {
+        view: function (ctrl, args) {
+            return [
+                m.component(navBar)
+            ];
+        }
+    },
+    '/poi-type': {
+        view: function (ctrl, args) {
+            return [
+                m.component(navBar)
+            ];
+        }
+    },
+    '/region': {
+        view: function (ctrl, args) {
+            return [
+                m.component(navBar)
+            ];
+        }
+    }
 });

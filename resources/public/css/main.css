@@ -110,7 +110,9 @@ form h3 {
     color: green;
 }
 
-
+.ui.container {
+    padding-top: 3em;
+}
 
 
 

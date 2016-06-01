@@ -30,9 +30,14 @@ gulp.task('clean', function () {
   });
 });
 
+gulp.task('reload-css', function () {
+    gulp.src([resourceDir + '/css/*.css']).pipe(livereload());
+});
+
 gulp.task('watch', function () {
     livereload.listen();
     gulp.watch([resourceDir + '/js/*.js'], ['compile']);
+    gulp.watch([resourceDir + '/css/*.css'], ['reload-css']);
 });
 
 gulp.task('default', ['compile', 'watch']);
