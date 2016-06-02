@@ -48,6 +48,7 @@ export var newVersionForm = {
                                     toastr.options.positionClass = "toast-bottom-center";
                                     toastr.options.timeOut = 1000;
                                     toastr.success('创建成功!');
+                                    args.onCreate(data);
                                     ctrl.init();
                                 }, ctrl.errors).then(() => {
                                     ctrl.loading(false);
@@ -100,22 +101,13 @@ export var newVersionForm = {
 };
 
 export var versionHistory = {
-    controller: function () {
-        this.versions = m.request({
-            method: 'GET',
-            url: '/app/version/list',
-            deserialize: function (data) {
-                return JSON.parse(data).data;
-            }            
-        });
-    },
     view: function (ctrl, args) {
-        console.log(ctrl.versions());
+        console.log(args);
         return (
             m('div', [
                 m('.ui.top.attached.info.message', '历史版本'),
                 m('.ui.bottom.attached.segment', [
-                    m('.ui.divided.list', (ctrl.versions() || []).map(function (version) {
+                    m('.ui.divided.list', (args.versions() || []).map(function (version) {
                         return m('.item', [
                             m('.content', [
                                 m('.header', {

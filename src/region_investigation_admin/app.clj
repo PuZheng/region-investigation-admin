@@ -52,10 +52,14 @@
                                                                                :version "该版本已经存在"
                                                                                }) 403)
 
-                                          (response/response (do (upload-file (params :file)
-                                                                              (io/file ((my-config) :upload-dir) "apks"
-                                                                                       (str version ".apk")))
-                                                                 {}))
+                                          (response/response (let [sdf (new SimpleDateFormat "yyyy-MM-dd HH:mm:ss")
+                                                                   dest (io/file ((my-config) :upload-dir) "apks"
+                                                                                        (str version ".apk"))] 
+                                                               (do (upload-file (params :file) dest)
+                                                                   {
+                                                                    :version version,
+                                                                    :createdAt (.format sdf (.lastModified dest)) 
+                                                                    })))
                                           ))
                                       ))
 

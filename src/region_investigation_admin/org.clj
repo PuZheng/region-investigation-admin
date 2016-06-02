@@ -29,7 +29,10 @@
                                                                                :code code
                                                                                :name name
                                                                                }])))
-                       {})
+                       {
+                        :code code
+                        :name name
+                        })
 
                      )
                    )

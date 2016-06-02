@@ -74,3 +74,9 @@ export var newOrgForm = {
                 );
     }
 };
+
+export var orgList = {
+    view: function (ctrl, args) {
+        
+    }
+};
