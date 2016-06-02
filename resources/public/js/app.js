@@ -1,5 +1,6 @@
+import fileButton from './file-button.js';
 
-var newVersionForm = {
+export var newVersionForm = {
     controller: function () {
         this.init = function () {
             this.file = m.prop();
@@ -98,36 +99,7 @@ var newVersionForm = {
     }
 };
 
-var fileButton = {
-    view: function (ctrl, args) {
-        return (
-            m('button.ui.tiny.button', {
-                style: {
-                    position: 'relative',
-                }, 
-            }, [
-                m('input[type=file]', {
-                    onchange: function (e) {
-                        args.file(e.currentTarget.files[0]);
-                    },
-                    value: "", // set value to "" to clear this field, otherwise onchange won't be callbacked when 
-                    // select the same file again
-                    style: {
-                        position: 'absolute',
-                        top: 0,
-                        right: 0,
-                        width: '100%',
-                        height: '100%',
-                        opacity: '0',
-                        display: 'block',
-                    },
-                })
-            ], '点击上传APK')
-        );
-    },
-};
-
-var versionHistory = {
+export var versionHistory = {
     controller: function () {
         this.versions = m.request({
             method: 'GET',
@@ -169,49 +141,3 @@ var versionHistory = {
         );
     },
 };
-
-var navBar = {
-    view: function (ctrl, args) {
-        return (
-                m('.ui.top.fixed.inverted.menu', [['/app', '应用'], 
-                    ['/org', '组织'], ['/poi-type', '信息点类型'], 
-                    ['/region', '上传数据']].map(([link, label]) => 
-                        m('.item', [m(`a[href=${link}]`, label)])
-                        ))
-               );
-    }
-};
-
-m.route.mode = 'pathname';
-m.route(document.querySelector('.ui.container'), "/app", { 
-    '/app': {
-        view: function (ctrl, args) {
-            return [
-                m.component(navBar),
-                m.component(newVersionForm),
-                m.component(versionHistory)
-            ];
-        },
-    },
-    '/org': {
-        view: function (ctrl, args) {
-            return [
-                m.component(navBar)
-            ];
-        }
-    },
-    '/poi-type': {
-        view: function (ctrl, args) {
-            return [
-                m.component(navBar)
-            ];
-        }
-    },
-    '/region': {
-        view: function (ctrl, args) {
-            return [
-                m.component(navBar)
-            ];
-        }
-    }
-});

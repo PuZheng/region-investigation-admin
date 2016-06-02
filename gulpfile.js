@@ -12,12 +12,15 @@ var resourceDir = 'resources/public/';
 
 gulp.task('compile', function () {
     console.log("COMPILE SCRIPTS");
-    return gulp.src([resourceDir + 'js/application.js'])
+    return gulp.src([resourceDir + 'js/main.js'])
         .pipe(sourcemaps.init())
+        .pipe(rollup({
+            sourceMap: true,
+        }))
         .pipe(babel({
             presets: ['es2015']
         }))
-        .pipe(rename('application.bundle.js'))
+        .pipe(rename('main.bundle.js'))
         .pipe(sourcemaps.write('.'))
         .pipe(gulp.dest(resourceDir + 'js/'))
         .pipe(livereload());
