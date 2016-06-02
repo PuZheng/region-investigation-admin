@@ -1,6 +1,6 @@
 import navBar from './nav-bar.js';
 import { newVersionForm, versionHistory } from './app.js';
-
+import { newOrgForm } from './org.js';
 
 
 m.route.mode = 'pathname';
@@ -17,7 +17,8 @@ m.route(document.querySelector('.ui.container'), "/app", {
     '/org': {
         view: function (ctrl, args) {
             return [
-                m.component(navBar)
+                m.component(navBar),
+                m.component(newOrgForm),
             ];
         }
     },
