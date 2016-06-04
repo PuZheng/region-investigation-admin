@@ -13,9 +13,6 @@
 (def apk-dir (io/file upload-dir "apks/"))
 (io/make-parents (io/file apk-dir "foo"))
 
-(defn upload-file
-  [from to]
-  (io/copy (from :tempfile) to))
 
 (defroutes app-routes
            (context "/app" []
@@ -55,7 +52,7 @@
                                           (response/response (let [sdf (new SimpleDateFormat "yyyy-MM-dd HH:mm:ss")
                                                                    dest (io/file ((my-config) :upload-dir) "apks"
                                                                                         (str version ".apk"))] 
-                                                               (do (upload-file (params :file) dest)
+                                                               (do (io/copy ((params :file) :tempfile) dest)
                                                                    {
                                                                     :version version,
                                                                     :createdAt (.format sdf (.lastModified dest)) 
