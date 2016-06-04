@@ -6,7 +6,12 @@ export default {
                     ['/region', '上传数据']].map(([link, label]) => 
                         m('.item', {
                             class: active == link? 'active': ''
-                        }, [m(`a[href=${link}]`, label)])
+                        }, [m('a[href=#]', {
+                            onclick: () => {
+                                m.route(link);
+                                return false;
+                            },
+                        }, label)])
                         ))
                );
     }

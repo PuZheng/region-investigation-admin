@@ -1,6 +1,6 @@
 import navBar from './nav-bar.js';
 import { newVersionForm, versionHistory } from './app.js';
-import { newOrgForm } from './org.js';
+import { newOrgForm, orgList } from './org.js';
 
 
 m.route.mode = 'pathname';
@@ -33,8 +33,8 @@ m.route(document.querySelector('.ui.container'), "/app", {
     },
     '/org': {
         controller: function () {
-            this.onCreate = function () {
-                
+            this.onCreate = function (org) {
+                this.orgs([org].concat(this.orgs()));
             }.bind(this);
             this.orgs = m.prop([]);
             m.request({

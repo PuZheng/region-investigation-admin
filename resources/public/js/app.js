@@ -102,7 +102,6 @@ export var newVersionForm = {
 
 export var versionHistory = {
     view: function (ctrl, args) {
-        console.log(args);
         return (
             m('div', [
                 m('.ui.top.attached.info.message', '历史版本'),
