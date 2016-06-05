@@ -77,6 +77,17 @@
                            (io/copy ((params :ic_active) :tempfile) (io/file dir "ic_active.png"))
                            {}))))
                    ))
+           (GET "/list" []
+                (response/response 
+                  {
+                   :data (mapcat (fn [org-dir] 
+                                       (map (fn [poi-type-dir] {
+                                                                :name (.getName poi-type-dir)
+                                                                :orgCode (.getName org-dir)
+                                                                }) 
+                                            (filter fs/directory? (fs/list-dir org-dir))))
+                                 (filter fs/directory? (fs/list-dir poi-type-dir)))
+                   }))
            (GET "/latest-versions" {params :query-params}
                 (response/response (let [org-code (params "org_code")]
                                      {:data (map (fn [dir] {
