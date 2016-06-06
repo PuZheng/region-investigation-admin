@@ -21,8 +21,26 @@
       (.read reader buffer 0 length)
       buffer)))
 
+(defn delete-recursively [dir]
+  (let [func (fn [func f]
+               (when (.isDirectory f)
+                 (doseq [f2 (.listFiles f)]
+                   (func func f2)))
+               (io/delete-file f))]
+    (func func dir)))
+
 (defroutes poi-type-routes
   (context "/poi-type" []
+           (DELETE "/object/:org-code/:name" {params :params} 
+                   (let [org-code (params :org-code)
+                         name_ (params :name)
+                         dir (io/file poi-type-dir (params :org-code) (params :name))
+                         ]
+                     (if (.exists dir)
+                       (response/response (do
+                                            (delete-recursively dir)
+                                            {}))
+                       (response/status (response/response {}) 404))))
            (GET "/object/:org-code/:name" {params :params}
                 (let [org-code (params :org-code)
                       name_ (params :name)

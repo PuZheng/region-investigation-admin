@@ -135,6 +135,17 @@ m.route(document.querySelector('.ui.container'), "/app", {
                                     fields: m.prop({}),
                                 };
                             }
+                        },
+                        remove: function (poiType) {
+                            ctrl.list(ctrl.list().filter(it => !(it.name == poiType.name && it.orgCode == poiType.orgCode))); 
+                            ctrl.object = {
+                                key: '',
+                                name: m.prop(''),
+                                orgCode: m.prop(''),
+                                ic: m.prop(''),
+                                icActive: m.prop(''),
+                                fields: m.prop({}),
+                            };
                         }
                     })   
                 ]),
