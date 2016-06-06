@@ -28,7 +28,7 @@ gulp.task('compile', function () {
 
 
 gulp.task('clean', function () {
-  del(resourceDir + 'js/application.bundle.js*').then(function (paths) {
+  del(resourceDir + 'js/*.bundle.js*').then(function (paths) {
       console.log(paths.join(', ') + " deleted");
   });
 });
@@ -39,8 +39,10 @@ gulp.task('reload-css', function () {
 
 gulp.task('watch', function () {
     livereload.listen();
-    gulp.watch([resourceDir + '/js/*.js'], ['compile']);
+    gulp.watch([resourceDir + '/js/*.js', '!' + resourceDir + '/js/main.bundle.js'], ['compile']);
     gulp.watch([resourceDir + '/css/*.css'], ['reload-css']);
 });
 
-gulp.task('default', ['compile', 'watch']);
+gulp.task('default', ['compile', 'watch'], function () {
+    livereload();
+});

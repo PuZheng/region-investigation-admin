@@ -1,6 +1,7 @@
 import navBar from './nav-bar.js';
 import { newVersionForm, versionHistory } from './app.js';
 import { newOrgForm, orgList } from './org.js';
+import { poiTypeList, poiTypeForm } from './poi-type.js';
 
 
 m.route.mode = 'pathname';
@@ -58,11 +59,51 @@ m.route(document.querySelector('.ui.container'), "/app", {
         }
     },
     '/poi-type': {
-        view: function (ctrl, args) {
-            return [
-                m.component(navBar, "/poi-type")
-            ];
-        }
+        controller: class {
+            constructor() {
+                this.init();
+            } 
+            init() {
+                this.object = m.prop();
+                this.list = m.prop([]);
+                m.request({
+                    method: 'GET',
+                    url: '/poi-type/list',
+                    deserialize: (data) => JSON.parse(data).data 
+                }).then(this.list);
+            }
+        },
+        view: (ctrl, args) => [
+            m.component(navBar, '/poi-type'),
+            m('.ui.horizontal.segments', [
+                m('.ui.segment', [
+                    m('button.ui.labeled.icon.primary.button', {
+                        onclick: () => {
+                            ctrl.object('');
+                        }
+                    }, [
+                        m('i.plus.icon')
+                    ], '创建新类型'),
+                    m.component(poiTypeList, {
+                        list: ctrl.list,
+                        onselect: function (e) {
+
+                        },
+                    }),
+                ]),
+                m('.ui.segment', [
+                    m.component(poiTypeForm, {
+                        object: ctrl.object,
+                        save: function (poiType) {
+                            ctrl.list([{
+                               name: poiType.name,
+                               orgCode: poiType.orgCode,
+                            }].concat(ctrl.list()));
+                        }
+                    })   
+                ]),
+            ]),
+        ],
     },
     '/region': {
         view: function (ctrl, args) {
