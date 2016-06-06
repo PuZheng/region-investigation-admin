@@ -42,7 +42,7 @@ export var newVersionForm = {
                                     method: 'POST',
                                     url: '/app/object',
                                     data: data,
-                                    serialize: function(value) {return value;},
+                                    serialize: (v) => v,
                                     config: transport,
                                 }).then((data) => {
                                     toastr.options.positionClass = "toast-bottom-center";

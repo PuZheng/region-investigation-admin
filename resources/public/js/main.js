@@ -94,6 +94,12 @@ m.route(document.querySelector('.ui.container'), "/app", {
                 m('.ui.segment', [
                     m.component(poiTypeForm, {
                         object: ctrl.object,
+                        save: function (poiType) {
+                            ctrl.list([{
+                               name: poiType.name,
+                               orgCode: poiType.orgCode,
+                            }].concat(ctrl.list()));
+                        }
                     })   
                 ]),
             ]),
