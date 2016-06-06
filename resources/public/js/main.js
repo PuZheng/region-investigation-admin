@@ -104,12 +104,15 @@ m.route(document.querySelector('.ui.container'), "/app", {
                                 method: 'GET',
                                 url: `/poi-type/object/${orgCode}/${name}`,
                             }).then((data) => {
-                                ctrl.object.key = data.orgCode + '-' + data.name;
-                                for (var key in ctrl.object) {
-                                    if (key != 'key' && ctrl.object.hasOwnProperty(key)) {
-                                        ctrl.object[key](data[key]);
-                                    }
-                                }
+                                var o = ctrl.object;
+                                o.key = data.orgCode + '-' + data.name;
+                                o.name(data.name);
+                                o.orgCode(data.orgCode);
+                                o.ic(data.ic);
+                                o.icActive(data.icActive);
+                                o.fields(_(data.fields).reduce((sum, f) => Object.assign(sum, {
+                                    [f.name]: f.type,
+                                }), {}));
                             });
                         },
                     }),

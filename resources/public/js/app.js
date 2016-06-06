@@ -79,10 +79,10 @@ export var newVersionForm = {
                             m('.field', [
                                     m('div', [
                                         m.component(fileButton, {
+                                            text: '选择图片',
                                             file: ctrl.file,
                                             onCompleted: function (path_) {
-
-                                    },
+                                            },
                                 }),
                                 m('.ui.circular.green.label', {
                                     class: ctrl.file()? '': 'invisible'

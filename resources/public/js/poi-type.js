@@ -141,8 +141,8 @@ export var poiTypeForm = {
                         icActive: '激活图标不能为空',
                     });
                 }),
-                applyWith(o.fields(), (v) => {
-                    _.isEmpty(v) && this.errors({
+                applyWith(!_.isEmpty(o.fields()), (v) => {
+                    !v && this.errors({
                         fields: '至少需要一个字段',
                     });
                 })
@@ -156,13 +156,27 @@ export var poiTypeForm = {
             let data = new FormData();
             data.append('name', o.name());
             data.append('org_code', o.orgCode());
-            data.append('fields', JSON.stringify(_(o.fields()).toPairs().value()));
-            data.append('ic', o.ic());
-            data.append('ic_active', o.icActive());
+            data.append('fields', JSON.stringify(_(o.fields()).toPairs().map(f => ({
+                name: f[0],
+                type: f[1],
+            })).value()));
+            // for PUT
+            if (this.icDataURL()) {
+                data.append('ic', o.ic());
+            }
+            if (this.icActiveDataURL()) {
+                data.append('ic_active', o.icActive());
+            }
             var transport = m.prop();
             this.loading(true);
             NProgress.start();
-            m.request({
+            m.request(o.key? {
+                method: 'PUT',
+                url: `/poi-type/object/${o.orgCode()}/${o.name()}`,
+                data: data,
+                serialize: (v) => v,
+                config: transport,
+            }: {
                 method: 'POST',
                 url: '/poi-type/object',
                 data: data,
@@ -171,13 +185,15 @@ export var poiTypeForm = {
             }).then(() => {
                 toastr.options.positionClass = "toast-bottom-center";
                 toastr.options.timeOut = 1000;
-                toastr.success('创建成功!');
-                this.args.save({
-                    name: o.name(),
-                    orgCode: o.orgCode(),
-                });
-                this.init();
-                this.$dropdownOrg.dropdown('clear');
+                toastr.success(o.key? '修改成功': '创建成功!');
+                if (!o.key) {
+                    this.args.save({
+                        name: o.name(),
+                        orgCode: o.orgCode(),
+                    });
+                    this.init();
+                    this.$dropdownOrg.dropdown('clear');
+                }
             }, this.errors).then(() => {
                 this.loading(false);
                 NProgress.done();
@@ -245,6 +261,7 @@ export var poiTypeForm = {
                         m('label', '默认图标(必须是PNG格式)'),
                         m('div', [
                             m.component(fileButton, {
+                                text: '选择图片',
                                 file: (file) => {
                                     m.startComputation();
                                     args.object.ic(file);
@@ -273,6 +290,7 @@ export var poiTypeForm = {
                         m('label', '激活状态图标(必须是PNG格式)'),
                         m('div', [
                             m.component(fileButton, {
+                                text: '选择图片',
                                 file: (file) => {
                                     m.startComputation();
                                     args.object.icActive(file);
@@ -352,6 +370,7 @@ export var poiTypeList = {
                                       m('a[href="#"]', {
                                           onclick: (e) => {
                                                 args.onselect(orgCode, t.name);
+                                                return false;
                                           },
                                           style: {
                                               'padding-right': '1em',
