@@ -111,41 +111,37 @@ export var poiTypeForm = {
                 url: '/org/list',
                 deserialize: (data) => JSON.parse(data).data
             });
-            this.name = m.prop('');
-            this.orgCode = m.prop('');
-            this.ic = m.prop('');
-            this.icActive = m.prop('');
             this.icDataURL = m.prop('');
             this.icActiveDataURL = m.prop('');
-            this.fields = m.prop({});
         }
         validate () {
             var applyWith = (o, f) => (
                 f(o),
                 o
             );
+            var o = this.args.object;
             return [
-                applyWith(this.name(), (v) => {
+                applyWith(o.name(), (v) => {
                     !v && this.errors({
                         name: '名称不能为空',
                     });
                 }),
-                applyWith(this.orgCode(), (v) => {
+                applyWith(o.orgCode(), (v) => {
                     !v && this.errors({
                         orgCode: '组织不能为空',
                     });
                 }),
-                applyWith(this.ic(), (v) => {
+                applyWith(o.ic(), (v) => {
                     !v && this.errors({
                         ic: '默认图标不能为空',
                     });
                 }),
-                applyWith(this.icActive(), (v) => {
+                applyWith(o.icActive(), (v) => {
                     !v && this.errors({
                         icActive: '激活图标不能为空',
                     });
                 }),
-                applyWith(this.fields(), (v) => {
+                applyWith(o.fields(), (v) => {
                     _.isEmpty(v) && this.errors({
                         fields: '至少需要一个字段',
                     });
@@ -156,12 +152,13 @@ export var poiTypeForm = {
             if (!this.validate()) {
                 return false;
             }
+            var o = this.args.object;
             let data = new FormData();
-            data.append('name', this.name());
-            data.append('org_code', this.orgCode());
-            data.append('fields', JSON.stringify(_(this.fields()).toPairs().value()));
-            data.append('ic', this.ic());
-            data.append('ic_active', this.icActive());
+            data.append('name', o.name());
+            data.append('org_code', o.orgCode());
+            data.append('fields', JSON.stringify(_(o.fields()).toPairs().value()));
+            data.append('ic', o.ic());
+            data.append('ic_active', o.icActive());
             var transport = m.prop();
             this.loading(true);
             NProgress.start();
@@ -176,8 +173,8 @@ export var poiTypeForm = {
                 toastr.options.timeOut = 1000;
                 toastr.success('创建成功!');
                 this.args.save({
-                    name: this.name(),
-                    orgCode: this.orgCode(),
+                    name: o.name(),
+                    orgCode: o.orgCode(),
                 });
                 this.init();
                 this.$dropdownOrg.dropdown('clear');
@@ -197,7 +194,7 @@ export var poiTypeForm = {
     view: (ctrl, args) => (
         m('div', [
             m('.ui.top.attached.red.message', 
-              args.object.name()? `编辑信息点类型(${args.object.name()})`: "创建信息点类型"),
+              args.object.key? `编辑信息点类型(${args.object.name()})`: "创建信息点类型"),
             m('.ui.bottom.attached.segment', [
                 m('form.ui.form', {
                     onsubmit: () => ctrl.save.apply(ctrl),
@@ -210,7 +207,7 @@ export var poiTypeForm = {
                                 oninput: m.withAttr('value', args.object.name),
                                 value: args.object.name(),
                             };
-                            if (args.object.name()) {
+                            if (args.object.key) {
                                 ret.readonly = true;
                             }
                             return ret;
@@ -221,7 +218,10 @@ export var poiTypeForm = {
                     ]),
                     m('.field', [
                         m('label[for="input-org-code"]', '组织'),
-                        m('.ui.selection.dropdown#input-org-code', { config: poiTypeForm.config(ctrl, args) }, [
+                        m('.ui.selection.dropdown#input-org-code', { 
+                            config: poiTypeForm.config(ctrl, args),
+                            class: args.object.key? 'disabled': '',
+                        }, [
                             m('input[type="hidden"][name="org_code"]'),
                             m('i.dropdown.icon'),
                             m('.default.text', '选择组织'),
@@ -247,7 +247,7 @@ export var poiTypeForm = {
                             m.component(fileButton, {
                                 file: (file) => {
                                     m.startComputation();
-                                    ctrl.ic(file);
+                                    args.object.ic(file);
                                     let fr = new FileReader();
                                     fr.addEventListener('load', function () {
                                         ctrl.icDataURL(fr.result);
@@ -275,7 +275,7 @@ export var poiTypeForm = {
                             m.component(fileButton, {
                                 file: (file) => {
                                     m.startComputation();
-                                    ctrl.icActive(file);
+                                    args.object.icActive(file);
                                     let fr = new FileReader();
                                     fr.addEventListener('load', function () {
                                         ctrl.icActiveDataURL(fr.result);
@@ -299,7 +299,7 @@ export var poiTypeForm = {
                     ]),
                     m('input.ui.primary.button[type=submit][value="提交"]'),
                     m('button.ui.red.button', {
-                        class: args.object.name()? '': 'invisible',
+                        class: args.object.key? '': 'invisible',
                         onclick: function () {
                             return false;
                         }
@@ -314,7 +314,7 @@ export var poiTypeForm = {
                 ctrl.$dropdownOrg = jQuery(element);
                 ctrl.$dropdownOrg.dropdown({
                     onChange: function (value, text, $choice) {
-                        ctrl.orgCode(value);
+                        args.object.orgCode(value);
                     }
                 });
             }

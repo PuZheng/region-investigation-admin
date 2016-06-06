@@ -65,11 +65,12 @@ m.route(document.querySelector('.ui.container'), "/app", {
             } 
             init() {
                 this.object = {
+                    key: '',
                     name: m.prop(''),
                     orgCode: m.prop(''),
                     ic: m.prop(''),
                     icActive: m.prop(''),
-                    fields: m.prop(''),
+                    fields: m.prop({}),
                 };
                 this.list = m.prop([]);
                 m.request({
@@ -85,8 +86,9 @@ m.route(document.querySelector('.ui.container'), "/app", {
                 m('.ui.segment', [
                     m('button.ui.labeled.icon.primary.button', {
                         onclick: () => {
+                            ctrl.object.key = '';
                             for (var key in ctrl.object) {
-                                if (ctrl.object.hasOwnProperty(key)) {
+                                if (key != 'key' && ctrl.object.hasOwnProperty(key)) {
                                     ctrl.object[key]('');
                                 }
                             }
@@ -102,9 +104,9 @@ m.route(document.querySelector('.ui.container'), "/app", {
                                 method: 'GET',
                                 url: `/poi-type/object/${orgCode}/${name}`,
                             }).then((data) => {
-                                console.log(data);
+                                ctrl.object.key = data.orgCode + '-' + data.name;
                                 for (var key in ctrl.object) {
-                                    if (ctrl.object.hasOwnProperty(key)) {
+                                    if (key != 'key' && ctrl.object.hasOwnProperty(key)) {
                                         ctrl.object[key](data[key]);
                                     }
                                 }
@@ -120,6 +122,16 @@ m.route(document.querySelector('.ui.container'), "/app", {
                                name: poiType.name,
                                orgCode: poiType.orgCode,
                             }].concat(ctrl.list()));
+                            if (!ctrl.object.key) {
+                                ctrl.object = {
+                                    key: '',
+                                    name: m.prop(''),
+                                    orgCode: m.prop(''),
+                                    ic: m.prop(''),
+                                    icActive: m.prop(''),
+                                    fields: m.prop({}),
+                                };
+                            }
                         }
                     })   
                 ]),
