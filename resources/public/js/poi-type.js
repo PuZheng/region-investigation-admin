@@ -1,3 +1,5 @@
+import fileButton from './file-button.js';
+
 var fieldEditor = {
     view: (ctrl, args) => (
         m('div', [
@@ -40,6 +42,10 @@ export var poiTypeForm = {
                 url: '/org/list',
                 deserialize: (data) => JSON.parse(data).data
             });
+            this.ic = m.prop();
+            this.icActive = m.prop();
+            this.icDataURL = m.prop();
+            this.icActiveDataURL = m.prop();
         }
     },
     view: (ctrl, args) => (
@@ -73,6 +79,58 @@ export var poiTypeForm = {
                         m('.ui.pointing.red.basic.label', {
                             class: (ctrl.errors() && ctrl.errors().fields)? "": "invisible",
                         }, (ctrl.errors() && ctrl.errors().fields) || ""),
+                    ]),
+                    m('.field', [
+                        m('label', '默认图标'),
+                        m.component(fileButton, {
+                            file: (file) => {
+                                m.startComputation();
+                                ctrl.ic(file);
+                                let fr = new FileReader();
+                                fr.addEventListener('load', function () {
+                                    ctrl.icDataURL(fr.result);
+                                    m.endComputation();
+                                    return false;
+                                }, false);
+                                fr.readAsDataURL(file);
+                            }
+                        }),
+                        m('img.ui.tiny.bordered.image', {
+                            src: ctrl.icDataURL() || '',
+                            class: ctrl.icDataURL()? '': 'invisible',
+                            style: {
+                                display: 'inline-block',
+                            }
+                        }),
+                        m('.ui.pointing.red.basic.label', {
+                            class: (ctrl.errors() && ctrl.errors().ic)? '': 'invisible',
+                        }, (ctrl.errors() && ctrl.errors().ic) || ""),
+                    ]),
+                    m('.field', [
+                        m('label', '激活状态图标'),
+                        m.component(fileButton, {
+                            file: (file) => {
+                                m.startComputation();
+                                ctrl.icActive(file);
+                                let fr = new FileReader();
+                                fr.addEventListener('load', function () {
+                                    ctrl.icActiveDataURL(fr.result);
+                                    m.endComputation();
+                                    return false;
+                                }, false);
+                                fr.readAsDataURL(file);
+                            }
+                        }),
+                        m('img.ui.tiny.bordered.image', {
+                            src: ctrl.icActiveDataURL() || '',
+                            class: ctrl.icActiveDataURL()? '': 'invisible',
+                            style: {
+                                display: 'inline-block',
+                            }
+                        }),
+                        m('.ui.pointing.red.basic.label', {
+                            class: (ctrl.errors() && ctrl.errors().icActive)? '': 'invisible',
+                        }, (ctrl.errors() && ctrl.errors().icActive) || ""),
                     ]),
                     m('input.ui.primary.button[type=submit][value="提交"]'),
                 ])
