@@ -64,7 +64,13 @@ m.route(document.querySelector('.ui.container'), "/app", {
                 this.init();
             } 
             init() {
-                this.object = m.prop();
+                this.object = {
+                    name: m.prop(''),
+                    orgCode: m.prop(''),
+                    ic: m.prop(''),
+                    icActive: m.prop(''),
+                    fields: m.prop(''),
+                };
                 this.list = m.prop([]);
                 m.request({
                     method: 'GET',
@@ -79,15 +85,30 @@ m.route(document.querySelector('.ui.container'), "/app", {
                 m('.ui.segment', [
                     m('button.ui.labeled.icon.primary.button', {
                         onclick: () => {
-                            ctrl.object('');
+                            for (var key in ctrl.object) {
+                                if (ctrl.object.hasOwnProperty(key)) {
+                                    ctrl.object[key]('');
+                                }
+                            }
                         }
                     }, [
                         m('i.plus.icon')
                     ], '创建新类型'),
                     m.component(poiTypeList, {
                         list: ctrl.list,
-                        onselect: function (e) {
-
+                        onselect: function (orgCode, name) {
+                            var it = ctrl.object;
+                            m.request({
+                                method: 'GET',
+                                url: `/poi-type/object/${orgCode}/${name}`,
+                            }).then((data) => {
+                                console.log(data);
+                                for (var key in ctrl.object) {
+                                    if (ctrl.object.hasOwnProperty(key)) {
+                                        ctrl.object[key](data[key]);
+                                    }
+                                }
+                            });
                         },
                     }),
                 ]),

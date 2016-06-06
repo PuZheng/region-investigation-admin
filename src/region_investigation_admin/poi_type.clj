@@ -23,6 +23,22 @@
 
 (defroutes poi-type-routes
   (context "/poi-type" []
+           (GET "/object/:org-code/:name" {params :params}
+                (let [org-code (params :org-code)
+                      name_ (params :name)
+                      dir (io/file poi-type-dir (params :org-code) (params :name))
+                      json (parse-string (slurp (io/file dir "config.json")))
+                      ]
+                  (if (.exists dir)
+                    (response/response {
+                                        :orgCode org-code
+                                        :name name_
+                                        :fields (json "fields")
+                                        :timestamp (json "timestamp")
+                                        :ic (str "/" (.getPath (io/file dir "ic.png")))
+                                        :icActive (str "/" (.getPath (io/file dir "ic_active.png")))
+                                        })
+                    (response/status (response/response {}) 404))))
            (wrap-multipart-params 
              (PUT "/object/:org-code/:name" {params :params}
                   (let [org-code (params :org-code)

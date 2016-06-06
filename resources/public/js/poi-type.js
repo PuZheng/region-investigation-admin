@@ -100,9 +100,8 @@ var fieldEditor = {
 export var poiTypeForm = {
     controller: class {
         constructor (args) {
-            this.init();
             this.args = args;
-            console.log(args);
+            this.init();
         }
         init () {
             this.loading = m.prop();
@@ -197,7 +196,8 @@ export var poiTypeForm = {
     },
     view: (ctrl, args) => (
         m('div', [
-            m('.ui.top.attached.red.message', args.object()? "编辑信息点类型" + args.object().name: "创建信息点类型"),
+            m('.ui.top.attached.red.message', 
+              args.object.name()? `编辑信息点类型(${args.object.name()})`: "创建信息点类型"),
             m('.ui.bottom.attached.segment', [
                 m('form.ui.form', {
                     onsubmit: () => ctrl.save.apply(ctrl),
@@ -205,17 +205,23 @@ export var poiTypeForm = {
                 }, [
                     m('.field', [
                         m('label[for="input-name"]', '名称'),
-                        m('input#input-name[type="text"][placeholder="请输入信息点名称"]', {
-                            oninput: m.withAttr('value', ctrl.name),
-                            value: ctrl.name(),
-                        }),
+                        m('input#input-name[type="text"][placeholder="请输入信息点名称"]', (() => {
+                            let ret = {
+                                oninput: m.withAttr('value', args.object.name),
+                                value: args.object.name(),
+                            };
+                            if (args.object.name()) {
+                                ret.readonly = true;
+                            }
+                            return ret;
+                        })()),
                         m('.ui.pointing.red.basic.label', {
                             class: (ctrl.errors() && ctrl.errors().name)? "": "invisible",
                         }, (ctrl.errors() && ctrl.errors().name) || ""),
                     ]),
                     m('.field', [
                         m('label[for="input-org-code"]', '组织'),
-                        m('.ui.selection.dropdown#input-org-code', { config: poiTypeForm.config(ctrl) }, [
+                        m('.ui.selection.dropdown#input-org-code', { config: poiTypeForm.config(ctrl, args) }, [
                             m('input[type="hidden"][name="org_code"]'),
                             m('i.dropdown.icon'),
                             m('.default.text', '选择组织'),
@@ -229,14 +235,14 @@ export var poiTypeForm = {
                     m('.field', [
                         m('label', '字段'),
                         m.component(fieldEditor, {
-                            fields: ctrl.fields
+                            fields: args.object.fields,
                         }),
                         m('.ui.pointing.red.basic.label', {
                             class: (ctrl.errors() && ctrl.errors().fields)? "": "invisible",
                         }, (ctrl.errors() && ctrl.errors().fields) || ""),
                     ]),
                     m('.field', [
-                        m('label', '默认图标'),
+                        m('label', '默认图标(必须是PNG格式)'),
                         m('div', [
                             m.component(fileButton, {
                                 file: (file) => {
@@ -252,8 +258,8 @@ export var poiTypeForm = {
                                 }
                             }),
                             m('img.ui.tiny.bordered.image', {
-                                src: ctrl.icDataURL() || '',
-                                class: ctrl.icDataURL()? '': 'invisible',
+                                src: ctrl.icDataURL() || args.object.ic() || '',
+                                class: ctrl.icDataURL() || args.object.ic()? '': 'invisible',
                                 style: {
                                     display: 'inline-block',
                                 }
@@ -264,7 +270,7 @@ export var poiTypeForm = {
                         }, (ctrl.errors() && ctrl.errors().ic) || ""),
                     ]),
                     m('.field', [
-                        m('label', '激活状态图标'),
+                        m('label', '激活状态图标(必须是PNG格式)'),
                         m('div', [
                             m.component(fileButton, {
                                 file: (file) => {
@@ -280,8 +286,8 @@ export var poiTypeForm = {
                                 }
                             }),
                             m('img.ui.tiny.bordered.image', {
-                                src: ctrl.icActiveDataURL() || '',
-                                class: ctrl.icActiveDataURL()? '': 'invisible',
+                                src: ctrl.icActiveDataURL() || args.object.icActive() || '',
+                                class: ctrl.icActiveDataURL() || args.object.icActive()? '': 'invisible',
                                 style: {
                                     display: 'inline-block',
                                 }
@@ -292,11 +298,17 @@ export var poiTypeForm = {
                         }, (ctrl.errors() && ctrl.errors().icActive) || ""),
                     ]),
                     m('input.ui.primary.button[type=submit][value="提交"]'),
+                    m('button.ui.red.button', {
+                        class: args.object.name()? '': 'invisible',
+                        onclick: function () {
+                            return false;
+                        }
+                    }, "删除"),
                 ])
             ])
         ])
     ),
-    config: (ctrl) => function (element, isInitialized) {
+    config: (ctrl, args) => function (element, isInitialized) {
         if (!isInitialized) {
             if (typeof jQuery !== 'undefined' && typeof jQuery.fn.dropdown !== 'undefined') {
                 ctrl.$dropdownOrg = jQuery(element);
@@ -305,6 +317,10 @@ export var poiTypeForm = {
                         ctrl.orgCode(value);
                     }
                 });
+            }
+        } else {
+            if (args.object.orgCode()) {
+                ctrl.$dropdownOrg.dropdown('set selected', args.object.orgCode());
             }
         }
     }
@@ -335,7 +351,7 @@ export var poiTypeList = {
                                   m('.content', [
                                       m('a[href="#"]', {
                                           onclick: (e) => {
-
+                                                args.onselect(orgCode, t.name);
                                           },
                                           style: {
                                               'padding-right': '1em',
