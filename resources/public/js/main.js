@@ -64,7 +64,14 @@ m.route(document.querySelector('.ui.container'), "/app", {
                 this.init();
             } 
             init() {
-                this.object = m.prop();
+                this.object = {
+                    key: '',
+                    name: m.prop(''),
+                    orgCode: m.prop(''),
+                    ic: m.prop(''),
+                    icActive: m.prop(''),
+                    fields: m.prop({}),
+                };
                 this.list = m.prop([]);
                 m.request({
                     method: 'GET',
@@ -79,15 +86,34 @@ m.route(document.querySelector('.ui.container'), "/app", {
                 m('.ui.segment', [
                     m('button.ui.labeled.icon.primary.button', {
                         onclick: () => {
-                            ctrl.object('');
+                            ctrl.object.key = '';
+                            for (var key in ctrl.object) {
+                                if (key != 'key' && ctrl.object.hasOwnProperty(key)) {
+                                    ctrl.object[key]('');
+                                }
+                            }
                         }
                     }, [
                         m('i.plus.icon')
                     ], '创建新类型'),
                     m.component(poiTypeList, {
                         list: ctrl.list,
-                        onselect: function (e) {
-
+                        onselect: function (orgCode, name) {
+                            var it = ctrl.object;
+                            m.request({
+                                method: 'GET',
+                                url: `/poi-type/object/${orgCode}/${name}`,
+                            }).then((data) => {
+                                var o = ctrl.object;
+                                o.key = data.orgCode + '-' + data.name;
+                                o.name(data.name);
+                                o.orgCode(data.orgCode);
+                                o.ic(data.ic);
+                                o.icActive(data.icActive);
+                                o.fields(_(data.fields).reduce((sum, f) => Object.assign(sum, {
+                                    [f.name]: f.type,
+                                }), {}));
+                            });
                         },
                     }),
                 ]),
@@ -99,6 +125,16 @@ m.route(document.querySelector('.ui.container'), "/app", {
                                name: poiType.name,
                                orgCode: poiType.orgCode,
                             }].concat(ctrl.list()));
+                            if (!ctrl.object.key) {
+                                ctrl.object = {
+                                    key: '',
+                                    name: m.prop(''),
+                                    orgCode: m.prop(''),
+                                    ic: m.prop(''),
+                                    icActive: m.prop(''),
+                                    fields: m.prop({}),
+                                };
+                            }
                         }
                     })   
                 ]),

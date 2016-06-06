@@ -23,7 +23,7 @@ export default {
                         display: 'block',
                     },
                 })
-            ], '点击上传APK')
+            ], args.text)
         );
     },
 };

@@ -100,9 +100,8 @@ var fieldEditor = {
 export var poiTypeForm = {
     controller: class {
         constructor (args) {
-            this.init();
             this.args = args;
-            console.log(args);
+            this.init();
         }
         init () {
             this.loading = m.prop();
@@ -112,42 +111,38 @@ export var poiTypeForm = {
                 url: '/org/list',
                 deserialize: (data) => JSON.parse(data).data
             });
-            this.name = m.prop('');
-            this.orgCode = m.prop('');
-            this.ic = m.prop('');
-            this.icActive = m.prop('');
             this.icDataURL = m.prop('');
             this.icActiveDataURL = m.prop('');
-            this.fields = m.prop({});
         }
         validate () {
             var applyWith = (o, f) => (
                 f(o),
                 o
             );
+            var o = this.args.object;
             return [
-                applyWith(this.name(), (v) => {
+                applyWith(o.name(), (v) => {
                     !v && this.errors({
                         name: '名称不能为空',
                     });
                 }),
-                applyWith(this.orgCode(), (v) => {
+                applyWith(o.orgCode(), (v) => {
                     !v && this.errors({
                         orgCode: '组织不能为空',
                     });
                 }),
-                applyWith(this.ic(), (v) => {
+                applyWith(o.ic(), (v) => {
                     !v && this.errors({
                         ic: '默认图标不能为空',
                     });
                 }),
-                applyWith(this.icActive(), (v) => {
+                applyWith(o.icActive(), (v) => {
                     !v && this.errors({
                         icActive: '激活图标不能为空',
                     });
                 }),
-                applyWith(this.fields(), (v) => {
-                    _.isEmpty(v) && this.errors({
+                applyWith(!_.isEmpty(o.fields()), (v) => {
+                    !v && this.errors({
                         fields: '至少需要一个字段',
                     });
                 })
@@ -157,16 +152,31 @@ export var poiTypeForm = {
             if (!this.validate()) {
                 return false;
             }
+            var o = this.args.object;
             let data = new FormData();
-            data.append('name', this.name());
-            data.append('org_code', this.orgCode());
-            data.append('fields', JSON.stringify(_(this.fields()).toPairs().value()));
-            data.append('ic', this.ic());
-            data.append('ic_active', this.icActive());
+            data.append('name', o.name());
+            data.append('org_code', o.orgCode());
+            data.append('fields', JSON.stringify(_(o.fields()).toPairs().map(f => ({
+                name: f[0],
+                type: f[1],
+            })).value()));
+            // for PUT
+            if (this.icDataURL()) {
+                data.append('ic', o.ic());
+            }
+            if (this.icActiveDataURL()) {
+                data.append('ic_active', o.icActive());
+            }
             var transport = m.prop();
             this.loading(true);
             NProgress.start();
-            m.request({
+            m.request(o.key? {
+                method: 'PUT',
+                url: `/poi-type/object/${o.orgCode()}/${o.name()}`,
+                data: data,
+                serialize: (v) => v,
+                config: transport,
+            }: {
                 method: 'POST',
                 url: '/poi-type/object',
                 data: data,
@@ -175,13 +185,15 @@ export var poiTypeForm = {
             }).then(() => {
                 toastr.options.positionClass = "toast-bottom-center";
                 toastr.options.timeOut = 1000;
-                toastr.success('创建成功!');
-                this.args.save({
-                    name: this.name(),
-                    orgCode: this.orgCode(),
-                });
-                this.init();
-                this.$dropdownOrg.dropdown('clear');
+                toastr.success(o.key? '修改成功': '创建成功!');
+                if (!o.key) {
+                    this.args.save({
+                        name: o.name(),
+                        orgCode: o.orgCode(),
+                    });
+                    this.init();
+                    this.$dropdownOrg.dropdown('clear');
+                }
             }, this.errors).then(() => {
                 this.loading(false);
                 NProgress.done();
@@ -197,7 +209,8 @@ export var poiTypeForm = {
     },
     view: (ctrl, args) => (
         m('div', [
-            m('.ui.top.attached.red.message', args.object()? "编辑信息点类型" + args.object().name: "创建信息点类型"),
+            m('.ui.top.attached.red.message', 
+              args.object.key? `编辑信息点类型(${args.object.name()})`: "创建信息点类型"),
             m('.ui.bottom.attached.segment', [
                 m('form.ui.form', {
                     onsubmit: () => ctrl.save.apply(ctrl),
@@ -205,17 +218,26 @@ export var poiTypeForm = {
                 }, [
                     m('.field', [
                         m('label[for="input-name"]', '名称'),
-                        m('input#input-name[type="text"][placeholder="请输入信息点名称"]', {
-                            oninput: m.withAttr('value', ctrl.name),
-                            value: ctrl.name(),
-                        }),
+                        m('input#input-name[type="text"][placeholder="请输入信息点名称"]', (() => {
+                            let ret = {
+                                oninput: m.withAttr('value', args.object.name),
+                                value: args.object.name(),
+                            };
+                            if (args.object.key) {
+                                ret.readonly = true;
+                            }
+                            return ret;
+                        })()),
                         m('.ui.pointing.red.basic.label', {
                             class: (ctrl.errors() && ctrl.errors().name)? "": "invisible",
                         }, (ctrl.errors() && ctrl.errors().name) || ""),
                     ]),
                     m('.field', [
                         m('label[for="input-org-code"]', '组织'),
-                        m('.ui.selection.dropdown#input-org-code', { config: poiTypeForm.config(ctrl) }, [
+                        m('.ui.selection.dropdown#input-org-code', { 
+                            config: poiTypeForm.config(ctrl, args),
+                            class: args.object.key? 'disabled': '',
+                        }, [
                             m('input[type="hidden"][name="org_code"]'),
                             m('i.dropdown.icon'),
                             m('.default.text', '选择组织'),
@@ -229,19 +251,20 @@ export var poiTypeForm = {
                     m('.field', [
                         m('label', '字段'),
                         m.component(fieldEditor, {
-                            fields: ctrl.fields
+                            fields: args.object.fields,
                         }),
                         m('.ui.pointing.red.basic.label', {
                             class: (ctrl.errors() && ctrl.errors().fields)? "": "invisible",
                         }, (ctrl.errors() && ctrl.errors().fields) || ""),
                     ]),
                     m('.field', [
-                        m('label', '默认图标'),
+                        m('label', '默认图标(必须是PNG格式)'),
                         m('div', [
                             m.component(fileButton, {
+                                text: '选择图片',
                                 file: (file) => {
                                     m.startComputation();
-                                    ctrl.ic(file);
+                                    args.object.ic(file);
                                     let fr = new FileReader();
                                     fr.addEventListener('load', function () {
                                         ctrl.icDataURL(fr.result);
@@ -252,8 +275,8 @@ export var poiTypeForm = {
                                 }
                             }),
                             m('img.ui.tiny.bordered.image', {
-                                src: ctrl.icDataURL() || '',
-                                class: ctrl.icDataURL()? '': 'invisible',
+                                src: ctrl.icDataURL() || args.object.ic() || '',
+                                class: ctrl.icDataURL() || args.object.ic()? '': 'invisible',
                                 style: {
                                     display: 'inline-block',
                                 }
@@ -264,12 +287,13 @@ export var poiTypeForm = {
                         }, (ctrl.errors() && ctrl.errors().ic) || ""),
                     ]),
                     m('.field', [
-                        m('label', '激活状态图标'),
+                        m('label', '激活状态图标(必须是PNG格式)'),
                         m('div', [
                             m.component(fileButton, {
+                                text: '选择图片',
                                 file: (file) => {
                                     m.startComputation();
-                                    ctrl.icActive(file);
+                                    args.object.icActive(file);
                                     let fr = new FileReader();
                                     fr.addEventListener('load', function () {
                                         ctrl.icActiveDataURL(fr.result);
@@ -280,8 +304,8 @@ export var poiTypeForm = {
                                 }
                             }),
                             m('img.ui.tiny.bordered.image', {
-                                src: ctrl.icActiveDataURL() || '',
-                                class: ctrl.icActiveDataURL()? '': 'invisible',
+                                src: ctrl.icActiveDataURL() || args.object.icActive() || '',
+                                class: ctrl.icActiveDataURL() || args.object.icActive()? '': 'invisible',
                                 style: {
                                     display: 'inline-block',
                                 }
@@ -292,19 +316,29 @@ export var poiTypeForm = {
                         }, (ctrl.errors() && ctrl.errors().icActive) || ""),
                     ]),
                     m('input.ui.primary.button[type=submit][value="提交"]'),
+                    m('button.ui.red.button', {
+                        class: args.object.key? '': 'invisible',
+                        onclick: function () {
+                            return false;
+                        }
+                    }, "删除"),
                 ])
             ])
         ])
     ),
-    config: (ctrl) => function (element, isInitialized) {
+    config: (ctrl, args) => function (element, isInitialized) {
         if (!isInitialized) {
             if (typeof jQuery !== 'undefined' && typeof jQuery.fn.dropdown !== 'undefined') {
                 ctrl.$dropdownOrg = jQuery(element);
                 ctrl.$dropdownOrg.dropdown({
                     onChange: function (value, text, $choice) {
-                        ctrl.orgCode(value);
+                        args.object.orgCode(value);
                     }
                 });
+            }
+        } else {
+            if (args.object.orgCode()) {
+                ctrl.$dropdownOrg.dropdown('set selected', args.object.orgCode());
             }
         }
     }
@@ -335,7 +369,8 @@ export var poiTypeList = {
                                   m('.content', [
                                       m('a[href="#"]', {
                                           onclick: (e) => {
-
+                                                args.onselect(orgCode, t.name);
+                                                return false;
                                           },
                                           style: {
                                               'padding-right': '1em',
