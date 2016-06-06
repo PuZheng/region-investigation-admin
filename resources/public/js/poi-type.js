@@ -1,35 +1,97 @@
 import fileButton from './file-button.js';
 
 var fieldEditor = {
+    controller: class {
+        constructor () {
+            this.name = m.prop('');
+            this.type = m.prop('');
+            this.errors = m.prop();
+            this.typeLabels = {
+                string: '字符串',
+                images: '图片',
+                video: '视频'
+            }
+        }
+    },
     view: (ctrl, args) => (
         m('div', [
-            m('input[type="text"][placeholder="字段名称"]', {
-                style: {
-                    width: 'auto'
-                }
-            }),
-            m('.ui.selection.dropdown', { config: fieldEditor.config() }, [
-                m('input[type="hidden"]'),
-                m('i.dropdown.icon'),
-                m('.default.text', '选择类型'),
-                m('.menu', [['字符串', 'string'], ['图片', 'images'], ['视频', 'video']].map(
-                    ([ label, type ]) => m(`.item[data-value=${type}]`, label))),
+            m('.inline.field', [
+                m('input[type="text"][placeholder="字段名称"]', {
+                    style: {
+                        width: 'auto'
+                    },
+                    oninput: m.withAttr('value', ctrl.name),
+                    value: ctrl.name(),
+                }),
+                m('.ui.selection.dropdown', { config: fieldEditor.config(ctrl) }, [
+                    m('input[type="hidden"]'),
+                    m('i.dropdown.icon'),
+                    m('.default.text', '选择类型'),
+                    m('.menu', ['string', 'images', 'video'].map(
+                        (type) => m(`.item[data-value=${type}]`, ctrl.typeLabels[type]))),
+                ]),
+                m('.ui.icon.button', {
+                    onclick: function () {
+                        if (ctrl.name() in args.fields()) {
+                            ctrl.errors({
+                                name: '字段已经存在'
+                            });
+                        } else {
+                            args.fields(Object.assign(args.fields(), {
+                               [ctrl.name()]: ctrl.type(),
+                            }));
+                            ctrl.name('');
+                            ctrl.type('');
+                        }
+                        return false;
+                    }
+                }, [
+                    m('i.icon.plus.green')
+                ]),
+                m('.ui.pointing.red.basic.label', {
+                    class: (ctrl.errors() && ctrl.errors().name)? "": "invisible",
+                }, (ctrl.errors() && ctrl.errors().name) || ""),
             ]),
-            m('.ui.icon.button', {
-                onclick: function () {
-
-                }
-            }, [
-                m('i.icon.plus.green')
-            ])
+            m('ul.ui.divided.bulleted.list', _(args.fields()).toPairs().map(
+                ([name, type]) => m('li.item', [
+                    m('.content', [
+                        m('.header', {
+                            style: {
+                                display: 'inline-block',
+                                'padding-left': '1em',
+                                'padding-right': '1em',
+                            }
+                        }, name),
+                        m('.content', {
+                            style: {
+                                'padding-left': '1em',
+                                'padding-right': '1em',
+                                display: 'inline-block',
+                            }
+                        }, ctrl.typeLabels[type]),
+                        m('.ui.icon.tiny.button', {
+                            onclick: function () {
+                                args.fields(_.omit(args.fields(), name));
+                                return false;
+                            }
+                        }, [
+                            m('i.icon.remove.red')
+                        ]),
+                    ])
+                ])
+            ).value()),
         ])
     ),
-    config: () => function (element, isInitialized) {
-            if (!isInitialized) {
-                if (typeof jQuery !== 'undefined' && typeof jQuery.fn.dropdown !== 'undefined') {
-                    jQuery(element).dropdown();
-                }
+    config: (ctrl) => function (element, isInitialized) {
+        if (!isInitialized) {
+            if (typeof jQuery !== 'undefined' && typeof jQuery.fn.dropdown !== 'undefined') {
+                jQuery(element).dropdown({
+                    onChange: function (value, text, $choice) {
+                        ctrl.type(value);
+                    }
+                });
             }
+        }
     }
 };
 
@@ -46,6 +108,7 @@ export var poiTypeForm = {
             this.icActive = m.prop();
             this.icDataURL = m.prop();
             this.icActiveDataURL = m.prop();
+            this.fields = m.prop({1: 'string'});
         }
     },
     view: (ctrl, args) => (
@@ -75,7 +138,9 @@ export var poiTypeForm = {
                     ]),
                     m('.field', [
                         m('label', '字段'),
-                        m.component(fieldEditor),
+                        m.component(fieldEditor, {
+                            fields: ctrl.fields
+                        }),
                         m('.ui.pointing.red.basic.label', {
                             class: (ctrl.errors() && ctrl.errors().fields)? "": "invisible",
                         }, (ctrl.errors() && ctrl.errors().fields) || ""),
