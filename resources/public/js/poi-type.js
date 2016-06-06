@@ -319,6 +319,27 @@ export var poiTypeForm = {
                     m('button.ui.red.button', {
                         class: args.object.key? '': 'invisible',
                         onclick: function () {
+                            swal({
+                                type: 'warning',
+                                title: '警告',
+                                text: '你确认要删除改信息点类型?',
+                                showCancelButton: true,
+                                closeOnConfirm: false,
+                            }, function (confirmed) {
+                                m.request({
+                                    method: 'DELETE',
+                                    url: `/poi-type/object/${args.object.orgCode()}/${args.object.name()}`,
+                                }).then(() => {
+                                    swal({
+                                        type: 'success',
+                                        title: '删除成功!',
+                                    });
+                                    args.remove({
+                                        orgCode: args.object.orgCode(), 
+                                        name: args.object.name()
+                                    });
+                                });
+                            });
                             return false;
                         }
                     }, "删除"),
