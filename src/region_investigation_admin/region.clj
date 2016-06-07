@@ -14,16 +14,14 @@
   (context "/region" []
            (GET "/accounts" []
                 (response/response 
-                  (do 
-                    (clojure.pprint/pprint "ok")
-                    {
-                    :data (flatten (map 
-                                     (fn [orgDir] (map (fn [accountDir] {
-                                                                         :orgCode (.getName orgDir)
-                                                                         :account (.getName accountDir)
-                                                                         }) (fs/list-dir orgDir))) 
-                                     (fs/list-dir (io/file region-dir))))
-                    })
+                  {
+                   :data (flatten (map 
+                                    (fn [orgDir] (map (fn [accountDir] {
+                                                                        :orgCode (.getName orgDir)
+                                                                        :account (.getName accountDir)
+                                                                        }) (fs/list-dir orgDir))) 
+                                    (fs/list-dir (io/file region-dir))))
+                   }
                   ))
            (wrap-multipart-params (POST "/object" {params :params}
                                         (response/response
