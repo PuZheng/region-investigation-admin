@@ -79,7 +79,7 @@ export var newVersionForm = {
                             m('.field', [
                                     m('div', [
                                         m.component(fileButton, {
-                                            text: '选择图片',
+                                            text: '选择文件',
                                             file: ctrl.file,
                                             onCompleted: function (path_) {
                                             },
