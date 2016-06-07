@@ -29,10 +29,10 @@ export var accountTree = {
                     m('.ui.list', accounts.map(
                         account => m('.item', [
                             m('a[href=#]', {
-                                onclick: function () {
-                                    args.select(account);
-                                    return false;
-                                }
+                                onclick: e => (
+                                    args.select(account),
+                                    false
+                                ),
                             }, account.username),
                         ])
                     ))
@@ -51,6 +51,22 @@ export var accountTree = {
 
 export var regionList = {
     view: (ctrl, args) => (
-        m('div', 'region list')
+        m('.ui.bulleted.divided.list', args.regions().map(
+            region => m('.item', {
+                style: {
+                    'padding-top': '0.5em',
+                    'padding-bottom': '0.5em',
+                }
+            }, [
+                m(`a.header[href=${region.path}]`, {
+                    style: {
+                        'padding-left': '1em',
+                        'padding-right': '1em',
+                        display: 'inline-block',
+                    }
+                }, '重点区域' + region.name),
+                m('i', '(最后上传于' + region.lastModified + ')'),
+            ])
+        ))
     )
 };

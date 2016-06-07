@@ -151,18 +151,30 @@ m.route(document.querySelector('.ui.container'), "/app", {
         ],
     },
     '/region': {
+        controller: function (args) {
+            this.regions = m.prop([]);
+        },
         view: (ctrl, args) => [
             m.component(navBar, '/region'),
             m('.ui.horizontal.segments', [
                 m('.ui.segment', [
                     m.component(accountTree, {
                         select: function (account) {
-                            console.log(account); 
+                            m.startComputation();
+                            m.request({
+                                method: 'GET',
+                                url: `/region/list?org_code=${account.orgCode}&username=${account.username}`,
+                            }).then(function (data) {
+                                ctrl.regions(data.data);
+                                m.endComputation();
+                            });
                         }
                     }),
                 ]),
                 m('.ui.segment', [
-                    m.component(regionList),
+                    m.component(regionList, {
+                        regions: ctrl.regions,
+                    }),
                 ])
             ]),
         ]
