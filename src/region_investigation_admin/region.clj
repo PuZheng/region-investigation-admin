@@ -18,10 +18,18 @@
                    :data (flatten (map 
                                     (fn [orgDir] (map (fn [accountDir] {
                                                                         :orgCode (.getName orgDir)
-                                                                        :account (.getName accountDir)
+                                                                        :username (.getName accountDir)
                                                                         }) (fs/list-dir orgDir))) 
                                     (fs/list-dir (io/file region-dir))))
                    }
+                  ))
+           (GET "/list" {params :query-params}
+                (response/response 
+                  (let [orgCode (params "org_code")
+                        username (params "username")] 
+                    {
+                     :data (map #(.getName %) (fs/list-dir (io/file region-dir orgCode username)))
+                     })
                   ))
            (wrap-multipart-params (POST "/object" {params :params}
                                         (response/response
