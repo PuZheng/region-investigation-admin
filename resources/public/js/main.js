@@ -2,6 +2,7 @@ import navBar from './nav-bar.js';
 import { newVersionForm, versionHistory } from './app.js';
 import { newOrgForm, orgList } from './org.js';
 import { poiTypeList, poiTypeForm } from './poi-type.js';
+import { accountTree, regionList } from './region.js';
 
 
 m.route.mode = 'pathname';
@@ -20,17 +21,15 @@ m.route(document.querySelector('.ui.container'), "/app", {
                 }            
             }).then(this.versions);
         },
-        view: function (ctrl, args) {
-            return [
-                m.component(navBar, "/app"),
-                m.component(newVersionForm, {
-                    onCreate: ctrl.onCreate,
-                }),
-                m.component(versionHistory, {
-                    versions: ctrl.versions
-                })
-            ];
-        },
+        view: (ctrl, args) => [
+            m.component(navBar, "/app"),
+            m.component(newVersionForm, {
+                onCreate: ctrl.onCreate,
+            }),
+            m.component(versionHistory, {
+                versions: ctrl.versions
+            })
+        ],
     },
     '/org': {
         controller: function () {
@@ -46,17 +45,16 @@ m.route(document.querySelector('.ui.container'), "/app", {
                 }            
             }).then(this.orgs);
         },
-        view: function (ctrl, args) {
-            return [
-                m.component(navBar, "/org"),
-                m.component(newOrgForm, {
-                    onCreate: ctrl.onCreate,
-                }),
-                m.component(orgList, {
-                    orgs: ctrl.orgs,
-                }),
-            ];
-        }
+        view: (ctrl, args) => [
+            m.component(navBar, "/org"),
+            m.component(newOrgForm, {
+                onCreate: ctrl.onCreate,
+            }),
+            m.component(orgList, {
+                orgs: ctrl.orgs,
+            }),
+        ]
+
     },
     '/poi-type': {
         controller: class {
@@ -153,10 +151,20 @@ m.route(document.querySelector('.ui.container'), "/app", {
         ],
     },
     '/region': {
-        view: function (ctrl, args) {
-            return [
-                m.component(navBar, '/region')
-            ];
-        }
+        view: (ctrl, args) => [
+            m.component(navBar, '/region'),
+            m('.ui.horizontal.segments', [
+                m('.ui.segment', [
+                    m.component(accountTree, {
+                        select: function (account) {
+                            console.log(account); 
+                        }
+                    }),
+                ]),
+                m('.ui.segment', [
+                    m.component(regionList),
+                ])
+            ]),
+        ]
     }
 });
