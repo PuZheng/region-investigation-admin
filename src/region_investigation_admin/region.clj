@@ -3,6 +3,7 @@
     [compojure.core :refer :all]
     [ring.middleware.multipart-params :refer [wrap-multipart-params]]
     [ring.util.response :as response]
+    [me.raynes.fs :as fs]
     [region-investigation-admin.config :refer [upload-dir]]
     [clojure.java.io :as io]))
 
@@ -10,17 +11,30 @@
 (io/make-parents (io/file region-dir "foo"))
 
 (defroutes region-routes
-           (context "/region" []
-             (wrap-multipart-params (POST "/" {params :params}
-                                      (response/response
-                                        (let [orgCode (params :orgCode)
-                                              username (params :username)
-                                              file (params :file)
-                                              dest (io/file region-dir orgCode username (file :filename))]
-                                          (io/make-parents dest)
-                                          (io/copy (file :tempfile) dest)
-                                          {}
-                                          ))))
-             )
+  (context "/region" []
+           (GET "/accounts" []
+                (response/response 
+                  (do 
+                    (clojure.pprint/pprint "ok")
+                    {
+                    :data (flatten (map 
+                                     (fn [orgDir] (map (fn [accountDir] {
+                                                                         :orgCode (.getName orgDir)
+                                                                         :account (.getName accountDir)
+                                                                         }) (fs/list-dir orgDir))) 
+                                     (fs/list-dir (io/file region-dir))))
+                    })
+                  ))
+           (wrap-multipart-params (POST "/object" {params :params}
+                                        (response/response
+                                          (let [orgCode (params :orgCode)
+                                                username (params :username)
+                                                file (params :file)
+                                                dest (io/file region-dir orgCode username (file :filename))]
+                                            (io/make-parents dest)
+                                            (io/copy (file :tempfile) dest)
+                                            {}
+                                            ))))
            )
+  )
 
