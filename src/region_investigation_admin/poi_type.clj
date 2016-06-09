@@ -53,8 +53,8 @@
                                         :name name_
                                         :fields (json "fields")
                                         :timestamp (json "timestamp")
-                                        :ic (str "/" (.getPath (io/file dir "ic.png")))
-                                        :icActive (str "/" (.getPath (io/file dir "ic_active.png")))
+                                        :ic (.getPath (io/file dir "ic.png"))
+                                        :icActive (.getPath (io/file dir "ic_active.png"))
                                         })
                     (response/status (response/response {}) 404))))
            (wrap-multipart-params 

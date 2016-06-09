@@ -34,8 +34,8 @@
                     {
                      :data (map (fn [zipFile] {
                                                :name ((re-matches #"(?i)(.*)\.zip" (.getName zipFile)) 1)
-                                               :path (str "/" (.getPath (io/file region-dir orgCode username 
-                                                                                 (.getName zipFile))))
+                                               :path (.getPath (io/file region-dir orgCode username 
+                                                                        (.getName zipFile)))
                                                :lastModified (.format sdf (new Date (.lastModified zipFile)))
                                                })
                                 (filter (fn [zipFile] (re-matches #"(?i).*\.zip" (.getName zipFile))) 

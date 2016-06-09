@@ -2,13 +2,13 @@ export var accountTree = {
     controller: function (args) {
         this.accounts = m.request({
             method: 'GET',
-            url: '/region/accounts',
+            url: 'region/accounts',
             deserialize: data => JSON.parse(data).data,
         }) ;
         this.orgCode2Name = m.prop({});
         m.request({
             method: 'GET',
-            url: '/org/list',
+            url: 'org/list',
         }).then((data) => {
             data.data.forEach((org) => {
                 this.orgCode2Name[org.code] = org.name;

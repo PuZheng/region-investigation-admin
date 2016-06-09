@@ -2,7 +2,7 @@ import fileButton from './file-button.js';
 
 var fieldEditor = {
     controller: class {
-        constructor () {
+        constructor (args) {
             this.name = m.prop('');
             this.type = m.prop('');
             this.errors = m.prop();
@@ -32,7 +32,7 @@ var fieldEditor = {
                 ]),
                 m('.ui.icon.button', {
                     onclick: function () {
-                        if (ctrl.name() in args.fields()) {
+                        if (ctrl.name() in (args.fields() || {})) {
                             ctrl.errors({
                                 name: '字段已经存在'
                             });
@@ -108,7 +108,7 @@ export var poiTypeForm = {
             this.errors = m.prop();
             this.orgs = m.request({
                 method: 'GET',
-                url: '/org/list',
+                url: 'org/list',
                 deserialize: (data) => JSON.parse(data).data
             });
             this.icDataURL = m.prop('');
@@ -172,13 +172,13 @@ export var poiTypeForm = {
             NProgress.start();
             m.request(o.key? {
                 method: 'PUT',
-                url: `/poi-type/object/${o.orgCode()}/${o.name()}`,
+                url: `poi-type/object/${o.orgCode()}/${o.name()}`,
                 data: data,
                 serialize: (v) => v,
                 config: transport,
             }: {
                 method: 'POST',
-                url: '/poi-type/object',
+                url: 'poi-type/object',
                 data: data,
                 serialize: (v) => v,
                 config: transport,
@@ -328,7 +328,7 @@ export var poiTypeForm = {
                             }, function (confirmed) {
                                 m.request({
                                     method: 'DELETE',
-                                    url: `/poi-type/object/${args.object.orgCode()}/${args.object.name()}`,
+                                    url: `poi-type/object/${args.object.orgCode()}/${args.object.name()}`,
                                 }).then(() => {
                                     swal({
                                         type: 'success',
@@ -370,7 +370,7 @@ export var poiTypeList = {
         this.orgsMap = m.prop({});
         m.request({
             method: 'GET',
-            url: '/org/list',
+            url: 'org/list',
         }).then((data) => {
             data.data.forEach((org) => {
                 this.orgsMap[org.code] = org.name;
@@ -397,7 +397,7 @@ export var poiTypeList = {
                                               'padding-right': '1em',
                                           }
                                       }, t.name),
-                                      m(`a[href="/poi-type/${orgCode}/${t.name}.zip"]`, [
+                                      m(`a[href="poi-type/${orgCode}/${t.name}.zip"]`, [
                                           m('i.icon.download')
                                       ])
                                   ])

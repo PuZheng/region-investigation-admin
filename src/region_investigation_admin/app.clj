@@ -52,11 +52,13 @@
                                           (response/response (let [sdf (new SimpleDateFormat "yyyy-MM-dd HH:mm:ss")
                                                                    dest (io/file ((my-config) :upload-dir) "apks"
                                                                                         (str version ".apk"))] 
-                                                               (do (io/copy ((params :file) :tempfile) dest)
-                                                                   {
-                                                                    :version version,
-                                                                    :createdAt (.format sdf (.lastModified dest)) 
-                                                                    })))
+                                                               (do 
+                                                                 (io/make-parents dest)
+                                                                 (io/copy ((params :file) :tempfile) dest)
+                                                                 {
+                                                                  :version version,
+                                                                  :createdAt (.format sdf (.lastModified dest)) 
+                                                                  })))
                                           ))
                                       ))
 

@@ -40,7 +40,7 @@ export var newVersionForm = {
                                 NProgress.start();
                                 m.request({ 
                                     method: 'POST',
-                                    url: '/app/object',
+                                    url: 'app/object',
                                     data: data,
                                     serialize: (v) => v,
                                     config: transport,
@@ -121,7 +121,7 @@ export var versionHistory = {
                                         'padding-right': '1em',
                                     }
                                 }, version.version),
-                                m('a[href="/app/' + version.version + '.apk"]', [
+                                m('a[href="app/' + version.version + '.apk"]', [
                                     m('i.ui.icon.download')
                                 ])
                             ])

@@ -6,8 +6,8 @@ import { accountTree, regionList } from './region.js';
 
 
 m.route.mode = 'pathname';
-m.route(document.querySelector('.ui.container'), "/app", { 
-    '/app': {
+m.route(document.querySelector('.ui.container'), "app", { 
+    'app': {
         controller: function () {
             this.onCreate = function (version) {
                this.versions([version].concat(this.versions()));
@@ -15,14 +15,14 @@ m.route(document.querySelector('.ui.container'), "/app", {
             this.versions = m.prop([]);
             m.request({
                 method: 'GET',
-                url: '/app/version/list',
+                url: 'app/version/list',
                 deserialize: function (data) {
                     return JSON.parse(data).data;
                 }            
             }).then(this.versions);
         },
         view: (ctrl, args) => [
-            m.component(navBar, "/app"),
+            m.component(navBar, "app"),
             m.component(newVersionForm, {
                 onCreate: ctrl.onCreate,
             }),
@@ -31,7 +31,7 @@ m.route(document.querySelector('.ui.container'), "/app", {
             })
         ],
     },
-    '/org': {
+    'org': {
         controller: function () {
             this.onCreate = function (org) {
                 this.orgs([org].concat(this.orgs()));
@@ -39,14 +39,14 @@ m.route(document.querySelector('.ui.container'), "/app", {
             this.orgs = m.prop([]);
             m.request({
                 method: 'GET',
-                url: '/org/list',
+                url: 'org/list',
                 deserialize: function (data) {
                     return JSON.parse(data).data;
                 }            
             }).then(this.orgs);
         },
         view: (ctrl, args) => [
-            m.component(navBar, "/org"),
+            m.component(navBar, "org"),
             m.component(newOrgForm, {
                 onCreate: ctrl.onCreate,
             }),
@@ -56,7 +56,7 @@ m.route(document.querySelector('.ui.container'), "/app", {
         ]
 
     },
-    '/poi-type': {
+    'poi-type': {
         controller: class {
             constructor() {
                 this.init();
@@ -73,13 +73,13 @@ m.route(document.querySelector('.ui.container'), "/app", {
                 this.list = m.prop([]);
                 m.request({
                     method: 'GET',
-                    url: '/poi-type/list',
+                    url: 'poi-type/list',
                     deserialize: (data) => JSON.parse(data).data 
                 }).then(this.list);
             }
         },
         view: (ctrl, args) => [
-            m.component(navBar, '/poi-type'),
+            m.component(navBar, 'poi-type'),
             m('.ui.horizontal.segments', [
                 m('.ui.segment', [
                     m('button.ui.labeled.icon.primary.button', {
@@ -100,7 +100,7 @@ m.route(document.querySelector('.ui.container'), "/app", {
                             var it = ctrl.object;
                             m.request({
                                 method: 'GET',
-                                url: `/poi-type/object/${orgCode}/${name}`,
+                                url: `poi-type/object/${orgCode}/${name}`,
                             }).then((data) => {
                                 var o = ctrl.object;
                                 o.key = data.orgCode + '-' + data.name;
@@ -150,12 +150,12 @@ m.route(document.querySelector('.ui.container'), "/app", {
             ]),
         ],
     },
-    '/region': {
+    'region': {
         controller: function (args) {
             this.regions = m.prop([]);
         },
         view: (ctrl, args) => [
-            m.component(navBar, '/region'),
+            m.component(navBar, 'region'),
             m('.ui.horizontal.segments', [
                 m('.ui.segment', [
                     m.component(accountTree, {
@@ -163,7 +163,7 @@ m.route(document.querySelector('.ui.container'), "/app", {
                             m.startComputation();
                             m.request({
                                 method: 'GET',
-                                url: `/region/list?org_code=${account.orgCode}&username=${account.username}`,
+                                url: `region/list?org_code=${account.orgCode}&username=${account.username}`,
                             }).then(function (data) {
                                 ctrl.regions(data.data);
                                 m.endComputation();

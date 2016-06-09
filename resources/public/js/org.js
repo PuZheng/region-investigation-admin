@@ -31,7 +31,7 @@ export var newOrgForm = {
                                 ctrl.loading(true);
                                 m.request({
                                     method: 'POST',
-                                    url: '/org/object',
+                                    url: 'org/object',
                                     data: {
                                         name: ctrl.name(),
                                         code: ctrl.code(),
