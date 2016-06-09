@@ -63,7 +63,7 @@ m.route(document.querySelector('.ui.container'), "app", {
             } 
             init() {
                 this.object = {
-                    key: '',
+                    key: m.prop(''),
                     name: m.prop(''),
                     orgCode: m.prop(''),
                     ic: m.prop(''),
@@ -77,20 +77,22 @@ m.route(document.querySelector('.ui.container'), "app", {
                     deserialize: (data) => JSON.parse(data).data 
                 }).then(this.list);
             }
+            clearObject() {
+                var o = this.object;
+                o.key('');
+                o.name('');
+                o.orgCode('');
+                o.ic('');
+                o.icActive('');
+                o.fields({});
+            }
         },
         view: (ctrl, args) => [
             m.component(navBar, 'poi-type'),
             m('.ui.horizontal.segments', [
                 m('.ui.segment', [
                     m('button.ui.labeled.icon.primary.button', {
-                        onclick: () => {
-                            ctrl.object.key = '';
-                            for (var key in ctrl.object) {
-                                if (key != 'key' && ctrl.object.hasOwnProperty(key)) {
-                                    ctrl.object[key]('');
-                                }
-                            }
-                        }
+                        onclick: () => (ctrl.clearObject(), ctrl.onResetCb(), false),
                     }, [
                         m('i.plus.icon')
                     ], '创建新类型'),
@@ -103,7 +105,7 @@ m.route(document.querySelector('.ui.container'), "app", {
                                 url: `poi-type/object/${orgCode}/${name}`,
                             }).then((data) => {
                                 var o = ctrl.object;
-                                o.key = data.orgCode + '-' + data.name;
+                                o.key(data.orgCode + '-' + data.name);
                                 o.name(data.name);
                                 o.orgCode(data.orgCode);
                                 o.ic(data.ic);
@@ -111,6 +113,7 @@ m.route(document.querySelector('.ui.container'), "app", {
                                 o.fields(_(data.fields).reduce((sum, f) => Object.assign(sum, {
                                     [f.name]: f.type,
                                 }), {}));
+                                ctrl.onResetCb();
                             });
                         },
                     }),
@@ -118,32 +121,24 @@ m.route(document.querySelector('.ui.container'), "app", {
                 m('.ui.segment', [
                     m.component(poiTypeForm, {
                         object: ctrl.object,
+                        // 这里的技巧是：因为poiTypeForm本身保存了状态，而由于mithril的限制，
+                        // 没有办法直接调用方法清除poiTypeForm的状态，所以这里做了一个钩子，
+                        // 当发生清除操作/替换对象操作的时候，调用这个钩子
+                        resetTrap: onResetCb => {
+                            ctrl.onResetCb = onResetCb;
+                        },
                         save: function (poiType) {
                             ctrl.list([{
                                name: poiType.name,
                                orgCode: poiType.orgCode,
                             }].concat(ctrl.list()));
-                            if (!ctrl.object.key) {
-                                ctrl.object = {
-                                    key: '',
-                                    name: m.prop(''),
-                                    orgCode: m.prop(''),
-                                    ic: m.prop(''),
-                                    icActive: m.prop(''),
-                                    fields: m.prop({}),
-                                };
+                            if (!ctrl.object.key()) {
+                                ctrl.object.key(poiType.orgCode + '-' + poiType.name);
                             }
                         },
                         remove: function (poiType) {
                             ctrl.list(ctrl.list().filter(it => !(it.name == poiType.name && it.orgCode == poiType.orgCode))); 
-                            ctrl.object = {
-                                key: '',
-                                name: m.prop(''),
-                                orgCode: m.prop(''),
-                                ic: m.prop(''),
-                                icActive: m.prop(''),
-                                fields: m.prop({}),
-                            };
+                            ctrl.clearObject();
                         }
                     })   
                 ]),

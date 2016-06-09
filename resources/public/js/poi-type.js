@@ -113,6 +113,16 @@ export var poiTypeForm = {
             });
             this.icDataURL = m.prop('');
             this.icActiveDataURL = m.prop('');
+            this.args.resetTrap(() => {
+                this.icDataURL('');
+                this.icActiveDataURL('');
+                this.errors({});
+                if (this.args.object.orgCode()) {
+                    this.$dropdownOrg.dropdown('set selected', this.args.object.orgCode());
+                } else {
+                    this.$dropdownOrg.dropdown('clear');
+                }
+            });
         }
         validate () {
             var applyWith = (o, f) => (
@@ -170,7 +180,7 @@ export var poiTypeForm = {
             var transport = m.prop();
             this.loading(true);
             NProgress.start();
-            m.request(o.key? {
+            m.request(o.key()? {
                 method: 'PUT',
                 url: `poi-type/object/${o.orgCode()}/${o.name()}`,
                 data: data,
@@ -185,14 +195,12 @@ export var poiTypeForm = {
             }).then(() => {
                 toastr.options.positionClass = "toast-bottom-center";
                 toastr.options.timeOut = 1000;
-                toastr.success(o.key? '修改成功': '创建成功!');
-                if (!o.key) {
+                toastr.success(o.key()? '修改成功': '创建成功!');
+                if (!o.key()) {
                     this.args.save({
                         name: o.name(),
                         orgCode: o.orgCode(),
                     });
-                    this.init();
-                    this.$dropdownOrg.dropdown('clear');
                 }
             }, this.errors).then(() => {
                 this.loading(false);
@@ -210,7 +218,7 @@ export var poiTypeForm = {
     view: (ctrl, args) => (
         m('div', [
             m('.ui.top.attached.red.message', 
-              args.object.key? `编辑信息点类型(${args.object.name()})`: "创建信息点类型"),
+              args.object.key()? `编辑信息点类型(${args.object.name()})`: "创建信息点类型"),
             m('.ui.bottom.attached.segment', [
                 m('form.ui.form', {
                     onsubmit: () => ctrl.save.apply(ctrl),
@@ -223,7 +231,7 @@ export var poiTypeForm = {
                                 oninput: m.withAttr('value', args.object.name),
                                 value: args.object.name(),
                             };
-                            if (args.object.key) {
+                            if (args.object.key()) {
                                 ret.readonly = true;
                             }
                             return ret;
@@ -236,7 +244,7 @@ export var poiTypeForm = {
                         m('label[for="input-org-code"]', '组织'),
                         m('.ui.selection.dropdown#input-org-code', { 
                             config: poiTypeForm.config(ctrl, args),
-                            class: args.object.key? 'disabled': '',
+                            class: args.object.key()? 'disabled': '',
                         }, [
                             m('input[type="hidden"][name="org_code"]'),
                             m('i.dropdown.icon'),
@@ -317,7 +325,7 @@ export var poiTypeForm = {
                     ]),
                     m('input.ui.primary.button[type=submit][value="提交"]'),
                     m('button.ui.red.button', {
-                        class: args.object.key? '': 'invisible',
+                        class: args.object.key()? '': 'invisible',
                         onclick: function () {
                             swal({
                                 type: 'warning',
