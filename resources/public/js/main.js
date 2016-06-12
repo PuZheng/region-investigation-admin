@@ -27,7 +27,33 @@ m.route(document.querySelector('.ui.container'), "app", {
                 onCreate: ctrl.onCreate,
             }),
             m.component(versionHistory, {
-                versions: ctrl.versions
+                versions: ctrl.versions,
+                remove: function (version) {
+                    swal({
+                        type: 'warning',
+                        title: '警告',
+                        text: `确认删除版本${version.version}?`,
+                        closeOnConfirm: false,
+                    }, function (confirmed) {
+                        if (confirmed) {
+                            m.request({
+                                method: 'DELETE',
+                                url: `app/version/${version.version}`,
+                            }).then(function () {
+                                swal({
+                                    type: 'success',
+                                    title: '删除成功',
+                                });
+                                ctrl.versions(ctrl.versions().filter(v => v.version != version.version));
+                            }, function () {
+                                swal({
+                                    type: 'error',
+                                    title: '出错了',
+                                });
+                            });
+                        }
+                    });
+                }
             })
         ],
     },
