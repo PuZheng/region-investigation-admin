@@ -39,26 +39,35 @@
                (response/header (response/file-response (.getPath (io/file apk-dir (str version ".apk"))))
                                 "content-disposition" (str "attachment; filename=\"" version ".apk\"")))
              (wrap-multipart-params (POST "/object" {params :params}
-                                      (let [version (params :version)
-                                            versionsExist (set (->> apk-dir
-                                                                    .listFiles
-                                                                    (filter (fn [f] (.endsWith (.getName f) ".apk")))
-                                                                    (map (fn [f] (.replace (.getName f) ".apk" "")))))]
-                                        (if (versionsExist version)
+                                      (let [version (map #(Integer/valueOf %) (.split (params :version) "\\."))
+                                            previousVersions (set (->> apk-dir
+                                                                       .listFiles
+                                                                       (filter (fn [f] (.endsWith (.getName f) ".apk")))
+                                                                       (map (fn [f] (.replace (.getName f) ".apk" "")))
+                                                                       (map (fn [v] (map #(Integer/valueOf %) (.split v "\\."))))
+                                                                       ))]
+                                        (clojure.pprint/pprint version)
+                                        (clojure.pprint/pprint previousVersions)
+                                        (if (previousVersions version)
                                           (response/status (response/response {
                                                                                :version "该版本已经存在"
                                                                                }) 403)
-
-                                          (response/response (let [sdf (new SimpleDateFormat "yyyy-MM-dd HH:mm:ss")
-                                                                   dest (io/file ((my-config) :upload-dir) "apks"
-                                                                                        (str version ".apk"))] 
-                                                               (do 
-                                                                 (io/make-parents dest)
-                                                                 (io/copy ((params :file) :tempfile) dest)
-                                                                 {
-                                                                  :version version,
-                                                                  :createdAt (.format sdf (.lastModified dest)) 
-                                                                  })))
+                                          (if (some (partial (fn [v1 v2] 
+                                                       (= (compare (vec v1) (vec v2)) -1)) 
+                                                             version) previousVersions)
+                                            (response/status (response/response {
+                                                                                 :version "存在高于该版本的版本"
+                                                                                 }) 403)
+                                           (response/response (let [sdf (new SimpleDateFormat "yyyy-MM-dd HH:mm:ss")
+                                                                    dest (io/file ((my-config) :upload-dir) "apks"
+                                                                                  (str version ".apk"))] 
+                                                                (do 
+                                                                  (io/make-parents dest)
+                                                                  (io/copy ((params :file) :tempfile) dest)
+                                                                  {
+                                                                   :version version,
+                                                                   :createdAt (.format sdf (.lastModified dest)) 
+                                                                   }))))
                                           ))
                                       ))
 
