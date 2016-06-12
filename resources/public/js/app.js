@@ -26,6 +26,12 @@ export var newVersionForm = {
                                     }));
                                     return false;
                                 }
+                                if (!ctrl.version().match(/\d+\.\d+\.\d+$/)) {
+                                    ctrl.errors(Object.assign(ctrl.errors(), {
+                                        version: '版本格式错误',
+                                    }));
+                                    return false;
+                                }
                                 if (!ctrl.file()) {
                                     ctrl.errors(Object.assign(ctrl.errors(), {
                                         file: "请上传apk文件"
@@ -107,7 +113,11 @@ export var versionHistory = {
                 m('.ui.top.attached.info.message', '历史版本'),
                 m('.ui.bottom.attached.segment', [
                     m('.ui.divided.list', (args.versions() || []).map(function (version) {
-                        return m('.item', [
+                        return m('.item', {
+                            style: {
+                                padding: '1em 0'
+                            }
+                        }, [
                             m('.content', [
                                 m('.header', {
                                     style: {
@@ -122,8 +132,13 @@ export var versionHistory = {
                                     }
                                 }, version.version),
                                 m('a[href="app/' + version.version + '.apk"]', [
-                                    m('i.ui.icon.download')
-                                ])
+                                    m('i.ui.large.icon.download')
+                                ]),
+                                m('i.ui.icon.large.red..remove', {
+                                    onclick: function () {
+                                        args.remove(version);
+                                    }
+                                })
                             ])
                         ]);
                     }))
