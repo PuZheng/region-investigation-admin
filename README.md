@@ -57,6 +57,7 @@
 略
 
 
-## 接口列表
+## 对外接口列表
     * 获取最新apk版本 - app/version/latest
-
+    * 获取最新的信息点模板列表 - poi-type/list
+    * 上传区域信息接口 - region/object

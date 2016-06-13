@@ -76,7 +76,6 @@
                                        :name name_
                                        :timestamp (.format sdf (new Date)) 
                                        :fields (parse-string (params :fields))
-                                       :uuid (java.util.UUID/randomUUID)
                                        }
                                       )))
                             (if (not (nil? ic)) (io/copy (ic :tempfile) (io/file dir "ic.png")))
@@ -105,7 +104,6 @@
                                     :name name_
                                     :timestamp (.format sdf (new Date)) 
                                     :fields (parse-string (params :fields))
-                                    :uuid (java.util.UUID/randomUUID)
                                     }))
                            (io/copy ((params :ic) :tempfile) (io/file dir "ic.png"))
                            (io/copy ((params :ic_active) :tempfile) (io/file dir "ic_active.png"))
