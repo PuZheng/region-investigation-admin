@@ -334,19 +334,21 @@ export var poiTypeForm = {
                                 showCancelButton: true,
                                 closeOnConfirm: false,
                             }, function (confirmed) {
-                                m.request({
-                                    method: 'DELETE',
-                                    url: `poi-type/object/${args.object.orgCode()}/${args.object.name()}`,
-                                }).then(() => {
-                                    swal({
-                                        type: 'success',
-                                        title: '删除成功!',
+                                if (confirmed) {
+                                    m.request({
+                                        method: 'DELETE',
+                                        url: `poi-type/object/${args.object.orgCode()}/${args.object.name()}`,
+                                    }).then(() => {
+                                        swal({
+                                            type: 'success',
+                                            title: '删除成功!',
+                                        });
+                                        args.remove({
+                                            orgCode: args.object.orgCode(), 
+                                            name: args.object.name()
+                                        });
                                     });
-                                    args.remove({
-                                        orgCode: args.object.orgCode(), 
-                                        name: args.object.name()
-                                    });
-                                });
+                                }
                             });
                             return false;
                         }
