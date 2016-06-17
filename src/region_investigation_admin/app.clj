@@ -33,13 +33,13 @@
                                                        )}
                                               ))
                     (GET "/latest-version" []
-                         (response/response
-                           (let [sdf (new SimpleDateFormat "yyyy-MM-dd HH:mm:ss")]
-                             ((fn [f] {
-                                       :createdAt (.format sdf (.lastModified f))
-                                       :version   (.replace (.getName f) ".apk" "")
-                                       }) (last (sort-by (fn [f] (.lastModified f)) (.listFiles apk-dir)))))
-                           ))
+                         (let [sdf (new SimpleDateFormat "yyyy-MM-dd HH:mm:ss")]
+                           ((fn [f] (if (nil? f) (response/status (response/response {}) 404) 
+                                      (response/response {
+                                        :createdAt (.format sdf (.lastModified f))
+                                        :version   (.replace (.getName f) ".apk" "")
+                                        }))) (last (sort-by (fn [f] (.lastModified f)) (.listFiles apk-dir)))))
+                         )
                     (GET "/:version.apk" [version]
                          (response/header (response/file-response (.getPath (io/file apk-dir (str version ".apk"))))
                                           "content-disposition" (str "attachment; filename=\"" version ".apk\"")))
