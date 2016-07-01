@@ -1,5 +1,17 @@
 # 重点区域信息采集APP后台管理功能说明书
 
+## QUICK START
+安装clojure(http://clojure.org/guides/getting_started), 和lein(http://leiningen.org/). 
+然后执行:
+```bash
+$ lein ring uberwar 
+```
+来生成war文件。然后部署到tomcat即可。
+如果是在开发模式下，直接执行:
+```bash
+$ lein ring server即可
+```
+
 ## 概述
 本管理后台包含如下功能模块:
 
