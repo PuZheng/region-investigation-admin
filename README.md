@@ -1,16 +1,29 @@
 # 重点区域信息采集APP后台管理功能说明书
 
 ## QUICK START
-安装clojure(http://clojure.org/guides/getting_started), 和lein(http://leiningen.org/). 
-然后执行:
+开发和构建环境需要安装: (注意，由于node环境在windows下问题多多，请尽量使用linux环境)
+ * clojure(http://clojure.org/guides/getting_started)
+ * lein(http://leiningen.org/)
+ * npm
+ * gulp (npm install -g gulp)
+ * bower (npm install -g bower)
+
+部署环境即标准的tomcat应用服务器。
+
+### 开发模式
 ```bash
+$ cd resources/public; bower # 通过bower安装需要的JS/CSS依赖
+$ cd ../../; gulp 
+$ lein ring server
+```
+### 生成WAR包
+```bash
+$ cd resources/public; bower
+$ cd ../../; gulp compile
 $ lein ring uberwar 
 ```
 来生成war文件。然后部署到tomcat即可。
-如果是在开发模式下，直接执行:
-```bash
-$ lein ring server即可
-```
+
 
 ## 概述
 本管理后台包含如下功能模块:
